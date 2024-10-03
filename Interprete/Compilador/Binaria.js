@@ -17,13 +17,11 @@ export class OperacionBinariaHandler {
     EjecutarHandler() {
         switch (this.operador) {
             case '+':
+            case '+=': 
                 return this.validarSuma();
             case '-':
-                return this.validarResta();
-            case '+=': 
-                return this.validarSumaImplicita();
             case '-=': 
-                return this.validarRestaImplicita();
+                return this.validarResta();
             case '*':
                 return this.validarMultiplicacion();
             case '/':
@@ -193,16 +191,21 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string == string = boolean
-                //Igual
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean == boolean = boolean
-                //Igual
+            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.seqz(r.T0, r.T0);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char == char = boolean
-                //Igual
+            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.seqz(r.T0, r.T0);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
     }
 
@@ -238,12 +241,18 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean != boolean = boolean
-                //Diferente
+            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.snez(r.T0, r.T0);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char != char = boolean
-                //Diferente
+            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.snez(r.T0, r.T0);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
     }
 
@@ -274,7 +283,9 @@ export class OperacionBinariaHandler {
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char > char = boolean
-                //Mayor
+            this.code.slt(r.T0, r.T0, r.T1);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
     }
 
@@ -284,10 +295,9 @@ export class OperacionBinariaHandler {
             switch(this.derecha.type) {
                 // int >= int = boolean
                 case 'int':
-                    this.code.slt(r.T0, r.T0, r.T1);
-                    this.code.seq(r.T1, r.T1, r.T0);
-                    this.code.or(r.T0, r.T0, r.T1);
-                    this.code.push(r.T0);
+                    this.code.slt(r.T0, r.T1, r.T0);  
+                    this.code.xori(r.T0, r.T0, 1);    
+                    this.code.push(r.T0);  
                     return { type: 'boolean', length: 4 };
 
                 // int >= float = boolean
@@ -306,8 +316,10 @@ export class OperacionBinariaHandler {
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
-            // char >= char = boolean
-                //Mayor Igual
+            this.code.slt(r.T0, r.T1, r.T0);
+            this.code.xori(r.T0, r.T0, 1);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
     }
 
@@ -338,7 +350,9 @@ export class OperacionBinariaHandler {
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char < char = boolean
-                //Menor
+            this.code.slt(r.T0, r.T1, r.T0);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
     }
 
@@ -348,9 +362,7 @@ export class OperacionBinariaHandler {
             switch(this.derecha.type) {
                 // int <= int = boolean
                 case 'int':
-                    this.code.sle(r.T0, r.T1, r.T0);
-                    this.code.seq(r.T1, r.T1, r.T0);
-                    this.code.or(r.T0, r.T0, r.T1);
+                    this.code.slt(r.T0, r.T1, r.T0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
 
@@ -370,8 +382,10 @@ export class OperacionBinariaHandler {
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
-            // char <= char = boolean
-                //Menor Igual
+            this.code.slt(r.T0, r.T1, r.T0);  // T0 = 1 si T1 < T0 (T0 > T1), de lo contrario 0
+            this.code.push(r.T0);             // Guardar el resultado en la pila
+            return { type: 'boolean', length: 4 };
+            
         }
     }
 

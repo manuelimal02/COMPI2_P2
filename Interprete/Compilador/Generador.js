@@ -26,7 +26,7 @@ export class Generador {
         this.objectStack = []
         this.depth = 0 
     }
-    
+
     add(rd, rs1, rs2) {
         this.instrucciones.push(new Instruction('add', rd, rs1, rs2))
     }
@@ -48,8 +48,8 @@ export class Generador {
         
     }
 
-    seq(rd, rs1, rs2) {
-        this.instrucciones.push(new Instruction('seq', rd, rs1, rs2))
+    xori(rd, rs1, inmediato) {
+        this.instrucciones.push(new Instruction('xori', rd, rs1, inmediato));
     }
     
     seqz(rd, rs1) {
@@ -201,7 +201,6 @@ export class Generador {
                 this.push();
                 length = 4;
                 break;
-
         }
         this.pushObject({ type: object.type, length, depth: this.depth });
     }
