@@ -14,7 +14,7 @@ export class DeclaracionVariableHandler {
         let valor;
         let tipoInferido = this.tipo;
         
-        if (this.tipo !== 'int' && this.tipo !== 'float' && this.tipo !== 'string' && this.tipo !== 'char' && this.tipo !== 'boolean' && this.tipo !== 'var' && !this.entornoActual.getStruct(this.tipo)) {
+        if (this.tipo !== 'int' && this.tipo !== 'float' && this.tipo !== 'string' && this.tipo !== 'char' && this.tipo !== 'boolean' && this.tipo !== 'var') {
             throw new Error(`Tipo De Dato No Válido: "${this.tipo}".`);
         }
         if (this.tipo === 'var' && !this.expresion) {
@@ -34,8 +34,6 @@ export class DeclaracionVariableHandler {
     DefinirTipoVar(valor) {
         const tipo = valor.tipo;
         if (tipo === 'int' || tipo === 'float' || tipo === 'char' || tipo === 'string' || tipo === 'boolean') {
-            return tipo;
-        } else if (this.entornoActual.getStruct(tipo)) {
             return tipo;
         }
         else {

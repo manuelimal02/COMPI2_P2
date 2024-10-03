@@ -1,6 +1,8 @@
 import { BaseVisitor } from "../Visitor/Visitor.js";
 import { registers as r } from "./Constantes.js";
 import { Generador } from "./Generador.js";
+import { OperacionBinariaHandler } from "./Binaria.js";
+import { OperacionUnariaHandler } from "./Unaria.js";
 
 export class Compilador extends BaseVisitor {
 
@@ -13,36 +15,13 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitOperacionBinaria']}
     */
     visitOperacionBinaria(node) {
-        this.code.comment(`Operacion: ${node.operador}`);
-        node.izquierda.accept(this); // izquierda |
-        node.derecha.accept(this); // izquierda | derecha
-
-        this.code.popObject(r.T0); // derecha
-        this.code.popObject(r.T1); // izquierda
-
-        switch (node.operador) {
-            case '+':
-                this.code.add(r.T0, r.T0, r.T1);
-                this.code.push(r.T0);
-                break;
-            case '-':
-                this.code.sub(r.T0, r.T1, r.T0);
-                this.code.push(r.T0);
-                break;
-            case '*':
-                this.code.mul(r.T0, r.T0, r.T1);
-                this.code.push(r.T0);
-                break;
-            case '/':
-                this.code.div(r.T0, r.T1, r.T0);
-                this.code.push(r.T0);
-                break;
-            case '%':
-                this.code.rem(r.T0, r.T1, r.T0);
-                this.code.push(r.T0);
-                break;
-        }
-        this.code.pushObject({ type: 'int', length: 4 });
+        node.izquierda.accept(this);
+        node.derecha.accept(this);
+        const derecha = this.code.popObject(r.T0);
+        const izquierda = this.code.popObject(r.T1);
+        const Handler = new OperacionBinariaHandler(node.operador, izquierda, derecha, this.code);
+        const Resultado = Handler.EjecutarHandler();
+        this.code.pushObject(Resultado);
     }
 
     /**
@@ -50,15 +29,10 @@ export class Compilador extends BaseVisitor {
     */
     visitOperacionUnaria(node) {
         node.expresion.accept(this);
-        this.code.popObject(r.T0);
-        switch (node.operador) {
-            case '-':
-                this.code.li(r.T1, 0);
-                this.code.sub(r.T0, r.T1, r.T0);
-                this.code.push(r.T0);
-                this.code.pushObject({ type: 'int', length: 4 });
-                break;
-        }
+        const izquierda = this.code.popObject(r.T0);
+        const Handler = new OperacionUnariaHandler(node.operador, izquierda, this.code);
+        const Resultado = Handler.EjecutarHandler();
+        this.code.pushObject(Resultado);
     }
 
     /**
@@ -96,14 +70,19 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitCaracter']}
     */
     visitCaracter(node) {
-        
+        console.log(node);
+        this.code.comment(`Primitivo Caracter: ${node.valor}`);
+        this.code.pushContant({ type: node.tipo, valor: node.valor.charCodeAt(0) });
+        this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
     * @type {BaseVisitor['visitBooleano']}
     */
     visitBooleano(node) {
-        
+        this.code.comment(`Primitivo Booleano: ${node.valor}`);
+        this.code.pushContant({ type: node.tipo, valor: node.valor });
+        this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
@@ -122,8 +101,6 @@ export class Compilador extends BaseVisitor {
     */
     visitReferenciaVariable(node) {
         this.code.comment(`Referencia a variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
-
-
         const [offset, variableObject] = this.code.getObject(node.id);
         this.code.addi(r.T0, r.SP, offset);
         this.code.lw(r.T1, r.T0);
@@ -137,47 +114,24 @@ export class Compilador extends BaseVisitor {
     */
     visitPrint(node) {
         this.code.comment('Print');
-    
         node.expresion.forEach(expresion => {
-            expresion.accept(this); // Evaluamos la expresión
-    
-            const object = this.code.popObject(r.A0); // Ahora hacemos pop después de evaluar
-    
-            // Definimos cómo imprimir dependiendo del tipo
+            expresion.accept(this);
+            const object = this.code.popObject(r.A0);
             const tipoPrint = {
                 'int': () => this.code.printInt(),
-                'string': () => this.code.printString()
+                'string': () => this.code.printString(),
+                'char': () => this.code.printChar(),
+                'boolean': () => this.code.printBoolean()
             }
-    
-            // Llamamos a la función de impresión correspondiente al tipo
             const printFn = tipoPrint[object.type];
             if (printFn) {
                 printFn();
             }
         });
-    
+        this.code.printNewLine();
         this.code.comment('Fin Print');
     }
     
-
-    /*
-    visitPrint(nodoVisit) {
-        // Verificar si hay múltiples expresiones y recorrerlas
-        nodoVisit.expresiones.forEach(expresion => {
-            // Aceptar la expresión individualmente
-            expresion.accept(this);
-    
-            // Obtener el valor evaluado de la pila en el registro A0
-            this.code.pop(r.A0);
-    
-            // Imprimir el valor como entero (puedes expandir esto para otros tipos)
-            this.code.printInt();
-        });
-    
-    }
-
-    */
-
     /**
     * @type {BaseVisitor['visitTernario']}
     */
@@ -189,19 +143,14 @@ export class Compilador extends BaseVisitor {
     */
     visitAsignacion(node) {
         this.code.comment(`Asignacion Variable: ${node.id}`);
-
-        node.asgn.accept(this);
+        node.asignacion.accept(this);
         const valueObject = this.code.popObject(r.T0);
         const [offset, variableObject] = this.code.getObject(node.id);
-
         this.code.addi(r.T1, r.SP, offset);
         this.code.sw(r.T0, r.T1);
-
         variableObject.type = valueObject.type;
-
         this.code.push(r.T0);
         this.code.pushObject(valueObject);
-
         this.code.comment(`Fin Asignacion Variable: ${node.id}`);
     }
 
@@ -210,18 +159,13 @@ export class Compilador extends BaseVisitor {
     */
     visitBloque(node) {
         this.code.comment('Inicio de bloque');
-
         this.code.newScope();
-
-        node.dcls.forEach(d => d.accept(this));
-
+        node.sentencias.forEach(d => d.accept(this));
         this.code.comment('Reduciendo la pila');
         const bytesToRemove = this.code.endScope();
-
         if (bytesToRemove > 0) {
             this.code.addi(r.SP, r.SP, bytesToRemove);
         }
-
         this.code.comment('Fin de bloque');
     }
 
