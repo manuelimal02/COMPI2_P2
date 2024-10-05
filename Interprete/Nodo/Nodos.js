@@ -804,25 +804,17 @@ export class Llamada extends Expresion {
     }
 }
     
-export class Embebida extends Expresion {
+export class ParseInt extends Expresion {
 
     /**
     * @param {Object} options
-    * @param {string} options.Nombre Nombre de la funcion embebida
- * @param {Expresion} options.Argumento Argumentos de la llamada
+    * @param {Expresion} options.Argumento Embebida ParseInt
     */
-    constructor({ Nombre, Argumento }) {
+    constructor({ Argumento }) {
         super();
         
         /**
-         * Nombre de la funcion embebida
-         * @type {string}
-        */
-        this.Nombre = Nombre;
-
-
-        /**
-         * Argumentos de la llamada
+         * Embebida ParseInt
          * @type {Expresion}
         */
         this.Argumento = Argumento;
@@ -833,7 +825,132 @@ export class Embebida extends Expresion {
      * @param {BaseVisitor} visitor
      */
     accept(visitor) {
-        return visitor.visitEmbebida(this);
+        return visitor.visitParseInt(this);
+    }
+}
+    
+export class ParseFloat extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Argumento Embebida ParseFloat
+    */
+    constructor({ Argumento }) {
+        super();
+        
+        /**
+         * Embebida ParseFloat
+         * @type {Expresion}
+        */
+        this.Argumento = Argumento;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitParseFloat(this);
+    }
+}
+    
+export class ToString extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Argumento Embebida ToString
+    */
+    constructor({ Argumento }) {
+        super();
+        
+        /**
+         * Embebida ToString
+         * @type {Expresion}
+        */
+        this.Argumento = Argumento;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitToString(this);
+    }
+}
+    
+export class ToLowerCase extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Argumento Embebida ToLowerCase
+    */
+    constructor({ Argumento }) {
+        super();
+        
+        /**
+         * Embebida ToLowerCase
+         * @type {Expresion}
+        */
+        this.Argumento = Argumento;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitToLowerCase(this);
+    }
+}
+    
+export class ToUpperCase extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Argumento Embebida ToUpperCase
+    */
+    constructor({ Argumento }) {
+        super();
+        
+        /**
+         * Embebida ToUpperCase
+         * @type {Expresion}
+        */
+        this.Argumento = Argumento;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitToUpperCase(this);
+    }
+}
+    
+export class TypeOf extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Argumento Embebida TypeOf
+    */
+    constructor({ Argumento }) {
+        super();
+        
+        /**
+         * Embebida TypeOf
+         * @type {Expresion}
+        */
+        this.Argumento = Argumento;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitTypeOf(this);
     }
 }
     
@@ -1182,4 +1299,4 @@ export class FuncionForanea extends Expresion {
     }
 }
     
-export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Ternario, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, Embebida, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }
+export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Ternario, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }

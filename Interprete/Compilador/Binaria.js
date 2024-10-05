@@ -73,8 +73,6 @@ export class OperacionBinariaHandler {
             }
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
-            //string + string = string
-            
         }  
     }
 
@@ -382,8 +380,8 @@ export class OperacionBinariaHandler {
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
-            this.code.slt(r.T0, r.T1, r.T0);  // T0 = 1 si T1 < T0 (T0 > T1), de lo contrario 0
-            this.code.push(r.T0);             // Guardar el resultado en la pila
+            this.code.slt(r.T0, r.T1, r.T0);
+            this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
             
         }

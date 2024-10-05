@@ -23,7 +23,8 @@
         'Continue': Nodos.Continue,
         'Return': Nodos.Return,
         'Llamada': Nodos.Llamada, 
-        'Embebida': Nodos.Embebida,
+        'ParseInt': Nodos.ParseInt,
+        'TypeOf': Nodos.TypeOf,
         'DeclaracionArreglo1': Nodos.DeclaracionArreglo1,
         'DeclaracionArreglo2': Nodos.DeclaracionArreglo2,
         'DeclaracionArreglo3': Nodos.DeclaracionArreglo3,
@@ -283,10 +284,18 @@ UNARIA = "-" _ expresion:UNARIA
             {return NuevoNodo('OperacionUnaria', {operador: '-', expresion: expresion})}
         / "!" _ expresion:UNARIA 
             {return NuevoNodo('OperacionUnaria', {operador: '!', expresion: expresion})}
-        / embe:("typeof") _ expresion:EXPRESION 
-            {return NuevoNodo('Embebida', {Nombre: embe, Argumento: expresion})}
-        / embe:("toString")"(" _ expresion:EXPRESION _ ")" _
-            {return NuevoNodo('Embebida', {Nombre: embe, Argumento: expresion})}
+        / "parseInt" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+            {return NuevoNodo('ParseInt', {Argumento})}
+        / "parsefloat" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+            {return NuevoNodo('ParseFloat', {Argumento})}
+        / "tostring" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+            {return NuevoNodo('ToString', {Argumento})}
+        / "tolowercase" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+            {return NuevoNodo('ToLowerCase', {Argumento})}
+        / "touppercase" _ "(" _ Argumento:OTRAEXPRESION _ ")"
+            {return NuevoNodo('ToUpperCase', {Argumento})}
+        / "typeof"_ Argumento:OTRAEXPRESION 
+            {return NuevoNodo('TypeOf', {Argumento})}
         / id:IDENTIFICADOR _ ".indexOf" _ "(" _ index:OTRAEXPRESION _ ")"
             {return NuevoNodo('IndexArreglo', {id, index})}
         / id:IDENTIFICADOR _ ".join()"

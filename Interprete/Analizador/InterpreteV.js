@@ -5,7 +5,6 @@ import { OperacionBinariaHandler } from "../Instruccion/OperacionBinaria.js";
 import { OperacionUnariaHandler } from "../Instruccion/OperacionUnaria.js";
 import { TernarioHandler } from "../Instruccion/Ternario.js";
 import { IfHandler } from "../Instruccion/SentenciaIF.js";
-import { Embebidas } from "../Instruccion/Embebida.js";
 import { Invocable } from "../Instruccion/Invocable.js";
 import { BreakException, ContinueException, ReturnException } from "../Instruccion/Transferencia.js";
 import Nodos from "../Nodo/Nodos.js";
@@ -26,10 +25,6 @@ export class Interprete extends BaseVisitor {
         super();
         this.entornoActual = new Entorno();
         this.salida = '';
-
-        Object.entries(Embebidas).forEach(([nombre, funcion]) => {
-            this.entornoActual.setVariable('funcion', nombre, funcion);
-        });
         /**
          * @type {Expresion | null}
          */
@@ -358,57 +353,100 @@ export class Interprete extends BaseVisitor {
     }
 
     /**
-     * @type {BaseVisitor['visitEmbebida']}
+     * @type {BaseVisitor['visitParseInt']}
      */ 
-    visitEmbebida(node) {
-        if (node.Nombre === "Object.keys") {
-            const ValorStruct = this.entornoActual.getVariable(node.Argumento);
-            if (!ValorStruct) {
-                throw new Error(`El Struct "${node.Argumento}" No Está Definido.`);
-            }
-            const TipoStruct = this.entornoActual.getStruct(ValorStruct.tipo);
-            if (!TipoStruct) {
-                throw new Error(`El Tipo De Estructura ${ValorStruct.tipo} No Está Definido.`);
-            }
-            let salida = "";
-            for (let i = 0; i < TipoStruct.atributos.length; i++) {
-                const atributo = TipoStruct.atributos[i].id;
-                if (i < TipoStruct.atributos.length - 1) {
-                    salida += atributo + ",";
-                } else {
-                    salida += atributo;
-                }
-            }
-            return { valor: salida, tipo: "string" };
-        }
-        
+    visitParseInt(node) {
         const expresion = node.Argumento.accept(this);
-        const NombreFuncion = node.Nombre;
-        switch (NombreFuncion) {
-            case 'typeof':
-                switch (expresion.tipo) {
-                    case "int":
-                        return {valor: expresion.tipo, tipo: "string" };
-                    case "float":
-                        return {valor: expresion.tipo, tipo: "string" };
-                    case "string": 
-                        return {valor: expresion.tipo, tipo: "string" };
-                    case "char":
-                        return {valor: expresion.tipo, tipo: "string" };
-                    case "boolean": 
-                        return {valor: expresion.tipo, tipo: "string" };    
-                    default:
-                        const TipoStruct = this.entornoActual.getStruct(expresion.tipo);
-                        if (!TipoStruct) {
-                            throw new Error(`El Argumento De typeof Es Tipo Desconocido: "${expresion.tipo}".`);
-                        }else{
-                            return {valor: expresion.tipo, tipo: "string"};
-                        }   
-                    }
-            case 'toString':
-                return {valor: expresion.valor.toString(), tipo: "string"};     
+        if (expresion.tipo !== "string") {
+            throw new Error(`El Argumento De parseInt Debe Ser De Tipo String, Pero Se Recibió Un "${expresion.tipo}".`);
+        }
+        const valor = parseInt(expresion.valor);
+        if (isNaN(valor)) {
+            throw new Error(`El Valor "${expresion.valor}" No Puede Convertirse A Un Número Entero.`);
+        }
+        return { valor: valor, tipo: "int" };
+    }
+
+    
+    /**
+     * @type {BaseVisitor['visitParseFloat']}
+     */
+    visitParseFloat(node) {
+        const arg = node.Argumento.accept(this);
+        if (arg.tipo !== "string") {
+            throw new Error(`El Argumento De parseFloat Debe Ser De Tipo String, Pero Se Recibió Un "${arg.tipo}".`);
+        }
+        const valor = parseFloat(arg.valor);
+        if (isNaN(valor)) {
+            throw new Error(`El Valor "${arg.valor}" No Puede Convertirse A Un Número Decimal.`);
+        }
+        return { valor: valor, tipo: "float" };
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitToString']}
+     */
+    visitToString(node) {
+        const arg = node.Argumento.accept(this);
+        switch (arg.tipo) {
+            case "int":
+                return {valor: arg.valor.toString(), tipo: "string"};
+            case "float":
+                return {valor: arg.valor.toString(), tipo: "string"};
+            case "string":
+                return {valor: arg.valor, tipo: "string"};
+            case "char":
+                return {valor: arg.valor, tipo: "string"};
+            case "boolean":
+                return {valor: arg.valor.toString(), tipo: "string"};
             default:
-                throw new Error(`La Función Embebida "${NombreFuncion}" No Existe.`);
+                throw new Error(`El Tipo De Dato "${arg.tipo}" No Es Válido.`);
+        }
+    }
+    
+    /**
+     * @type {BaseVisitor['visitToLowerCase']}
+     */
+    visitToLowerCase(node) {
+        const arg = node.Argumento.accept(this);
+        if (arg.tipo !== "string") {
+            throw new Error(`El Argumento De toLowerCase Debe Ser De Tipo String, Pero Se Recibió Un "${arg.tipo}".`);
+        }
+        return { valor: arg.valor.toLowerCase(), tipo: "string" };
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitToUpperCase']}
+     */
+    visitToUpperCase(node) {
+        const arg = node.Argumento.accept(this);
+        if (arg.tipo !== "string") {
+            throw new Error(`El Argumento De toLowerCase Debe Ser De Tipo String, Pero Se Recibió Un "${arg.tipo}".`);
+        }
+        return { valor: arg.valor.toUpperCase(), tipo: "string" };
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitTypeOf']}
+     */ 
+    visitTypeOf(node) {
+        const expresion = node.Argumento.accept(this);
+        switch (expresion.tipo) {
+            case "int":
+                return {valor: expresion.tipo, tipo: "string" };
+            case "float":
+                return {valor: expresion.tipo, tipo: "string" };
+            case "string": 
+                return {valor: expresion.tipo, tipo: "string" };
+            case "char":
+                return {valor: expresion.tipo, tipo: "string" };
+            case "boolean": 
+                return {valor: expresion.tipo, tipo: "string" };    
+            default:
+                throw new Error(`El Tipo De Dato "${expresion.tipo}" No Es Válido.`);
         }
     }
 

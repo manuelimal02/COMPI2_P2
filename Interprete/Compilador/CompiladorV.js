@@ -70,7 +70,6 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitCaracter']}
     */
     visitCaracter(node) {
-        console.log(node);
         //this.code.comment(`Primitivo Caracter: ${node.valor}`);
         this.code.pushContant({ type: node.tipo, valor: node.valor.charCodeAt(0) });
         //this.code.comment(`Fin Primitivo: ${node.valor}`);
@@ -221,10 +220,35 @@ export class Compilador extends BaseVisitor {
     }
 
     /**
-     * @type {BaseVisitor['visitEmbebida']}
+     * @type {BaseVisitor['visitParseInt']}
      */ 
-    visitEmbebida(node) {
-    
+    visitParseInt(node) {
+        node.Argumento.accept(this);
+        const valor = this.code.popObject(r.T0);
+        if (valor.type === 'string') {
+            this.code.pushContant({ type: 'int', valor: parseInt(valor.valor)});
+        } 
+        return
+    }
+    /**
+     * @type {BaseVisitor['visitTypeOf']}
+     */ 
+    visitTypeOf(node) {
+        node.Argumento.accept(this);
+        const valor = this.code.popObject(r.T0);
+        if (valor.type === 'int') {
+            this.code.pushContant({ type: 'string', valor: 'int' });
+        } else if (valor.type === 'float') {
+            this.code.pushContant({ type: 'string', valor: 'float' });
+        } else if (valor.type === 'char') {
+            this.code.pushContant({ type: 'string', valor: 'char' });
+        } else if (valor.type === 'boolean') {
+            this.code.pushContant({ type: 'string', valor: 'boolean' });
+        } else if (valor.type === 'string') {
+            this.code.pushContant({ type: 'string', valor: 'string' });
+        }
+        //this.code.pushObject({ type: 'string', length: 4 });
+        return
     }
 
     /**

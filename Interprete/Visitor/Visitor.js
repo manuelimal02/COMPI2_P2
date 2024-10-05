@@ -73,7 +73,22 @@
  * @typedef {import('../Nodo/Nodos.js').Llamada} Llamada
 
 
- * @typedef {import('../Nodo/Nodos.js').Embebida} Embebida
+ * @typedef {import('../Nodo/Nodos.js').ParseInt} ParseInt
+
+
+ * @typedef {import('../Nodo/Nodos.js').ParseFloat} ParseFloat
+
+
+ * @typedef {import('../Nodo/Nodos.js').ToString} ToString
+
+
+ * @typedef {import('../Nodo/Nodos.js').ToLowerCase} ToLowerCase
+
+
+ * @typedef {import('../Nodo/Nodos.js').ToUpperCase} ToUpperCase
+
+
+ * @typedef {import('../Nodo/Nodos.js').TypeOf} TypeOf
 
 
  * @typedef {import('../Nodo/Nodos.js').DeclaracionArreglo1} DeclaracionArreglo1
@@ -329,11 +344,56 @@ export class BaseVisitor {
     
 
     /**
-     * @param {Embebida} node
+     * @param {ParseInt} node
      * @returns {any}
      */
-    visitEmbebida(node) {
-        throw new Error('Metodo visitEmbebida no implementado');
+    visitParseInt(node) {
+        throw new Error('Metodo visitParseInt no implementado');
+    }
+    
+
+    /**
+     * @param {ParseFloat} node
+     * @returns {any}
+     */
+    visitParseFloat(node) {
+        throw new Error('Metodo visitParseFloat no implementado');
+    }
+    
+
+    /**
+     * @param {ToString} node
+     * @returns {any}
+     */
+    visitToString(node) {
+        throw new Error('Metodo visitToString no implementado');
+    }
+    
+
+    /**
+     * @param {ToLowerCase} node
+     * @returns {any}
+     */
+    visitToLowerCase(node) {
+        throw new Error('Metodo visitToLowerCase no implementado');
+    }
+    
+
+    /**
+     * @param {ToUpperCase} node
+     * @returns {any}
+     */
+    visitToUpperCase(node) {
+        throw new Error('Metodo visitToUpperCase no implementado');
+    }
+    
+
+    /**
+     * @param {TypeOf} node
+     * @returns {any}
+     */
+    visitTypeOf(node) {
+        throw new Error('Metodo visitTypeOf no implementado');
     }
     
 

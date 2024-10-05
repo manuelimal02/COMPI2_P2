@@ -26,13 +26,17 @@ export class OperacionUnariaHandler {
                 }
             case '++':
                 if (this.izquierda.type === 'int') {
-                    // int + 1 = int
+                    this.code.addi(r.T0, r.T0, 1);
+                    this.code.push(r.T0);
+                    return { type: 'int', length: 4 }
                 } else if (this.izquierda.type === 'float') {
                     // float + 1 = float
                 }
             case '--':
                 if (this.izquierda.type === 'int') {
-                    // int - 1 = int
+                    this.code.addi(r.T0, r.T0, -1);
+                    this.code.push(r.T0);
+                    return { type: 'int', length: 4 }
                 } else if (this.izquierda.type === 'float') {
                     // float - 1 = float
                 } 
