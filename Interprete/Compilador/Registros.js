@@ -1,4 +1,4 @@
-export const registers = {
+export const Registros = {
     ZERO: 'zero',
     RA: 'ra',
     SP: 'sp',

@@ -1,5 +1,5 @@
 import { BaseVisitor } from "../Visitor/Visitor.js";
-import { registers as r } from "./Constantes.js";
+import { Registros as r } from "./Registros.js";
 import { Generador } from "./Generador.js";
 import { OperacionBinariaHandler } from "./Binaria.js";
 import { OperacionUnariaHandler } from "./Unaria.js";
@@ -9,6 +9,7 @@ export class Compilador extends BaseVisitor {
     constructor() {
         super();
         this.code = new Generador();
+        this.PilaBreaks = [];
     }
 
     /**
@@ -46,9 +47,7 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitEntero']}
     */
     visitEntero(node) {
-        //this.code.comment(`Primitivo Entero: ${node.valor}`);
         this.code.pushContant({ type: node.tipo, valor: node.valor });
-        //this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
@@ -61,58 +60,46 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitCadena']}
     */
     visitCadena(node) {
-        //this.code.comment(`Primitivo Cadena: ${node.valor}`);
         this.code.pushContant({ type: node.tipo, valor: node.valor });
-        //this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
     * @type {BaseVisitor['visitCaracter']}
     */
     visitCaracter(node) {
-        //this.code.comment(`Primitivo Caracter: ${node.valor}`);
         this.code.pushContant({ type: node.tipo, valor: node.valor.charCodeAt(0) });
-        //this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
     * @type {BaseVisitor['visitBooleano']}
     */
     visitBooleano(node) {
-        //this.code.comment(`Primitivo Booleano: ${node.valor}`);
         this.code.pushContant({ type: node.tipo, valor: node.valor });
-        //this.code.comment(`Fin Primitivo: ${node.valor}`);
     }
 
     /**
     * @type {BaseVisitor['visitDeclaracionVar']}
     */
     visitDeclaracionVar(node) {
-        //this.code.comment(`Declaracion Variable: ${node.id}`);
         node.expresion.accept(this);
         this.code.tagObject(node.id);
-        //this.code.comment(`Fin declaracion Variable: ${node.id}`);
     }
-    
 
     /**
     * @type {BaseVisitor['visitReferenciaVariable']}
     */
     visitReferenciaVariable(node) {
-        //this.code.comment(`Referencia a variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
         const [offset, variableObject] = this.code.getObject(node.id);
         this.code.addi(r.T0, r.SP, offset);
         this.code.lw(r.T1, r.T0);
         this.code.push(r.T1);
         this.code.pushObject({ ...variableObject, id: undefined });
-        //this.code.comment(`Fin referencia de variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
     }
 
     /**
     * @type {BaseVisitor['visitPrint']}
     */
     visitPrint(node) {
-        //this.code.comment('Print');
         node.expresion.forEach(expresion => {
             expresion.accept(this);
             const object = this.code.popObject(r.A0);
@@ -128,7 +115,6 @@ export class Compilador extends BaseVisitor {
             }
         });
         this.code.printNewLine();
-        //this.code.comment('Fin Print');
     }
     
     /**
@@ -141,7 +127,6 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitAsignacion']}
     */
     visitAsignacion(node) {
-        //this.code.comment(`Asignacion Variable: ${node.id}`);
         node.asignacion.accept(this);
         const valueObject = this.code.popObject(r.T0);
         const [offset, variableObject] = this.code.getObject(node.id);
@@ -150,28 +135,44 @@ export class Compilador extends BaseVisitor {
         variableObject.type = valueObject.type;
         this.code.push(r.T0);
         this.code.pushObject(valueObject);
-        //this.code.comment(`Fin Asignacion Variable: ${node.id}`);
     }
 
     /**
     * @type {BaseVisitor['visitBloque']}
     */
     visitBloque(node) {
-        //this.code.comment('Inicio de bloque');
         this.code.newScope();
         node.sentencias.forEach(d => d.accept(this));
-        //this.code.comment('Reduciendo la pila');
         const bytesToRemove = this.code.endScope();
         if (bytesToRemove > 0) {
             this.code.addi(r.SP, r.SP, bytesToRemove);
         }
-        //this.code.comment('Fin de bloque');
     }
 
     /**
     * @type {BaseVisitor['visitIf']}
     */
     visitIf(node) {
+        this.code.comment('Inicio-del-If');
+        node.condicion.accept(this);
+        this.code.popObject(r.T0);
+        const hasElse = !!node.sentenciasFalso
+        if (hasElse) {
+            const elseLabel = this.code.getLabel();
+            const endIfLabel = this.code.getLabel();
+            this.code.beq(r.T0, r.ZERO, elseLabel);
+            node.sentenciasVerdadero.accept(this);
+            this.code.j(endIfLabel);
+            this.code.addLabel(elseLabel);
+            node.sentenciasFalso.accept(this);
+            this.code.addLabel(endIfLabel);
+        } else {
+            const endIfLabel = this.code.getLabel();
+            this.code.beq(r.T0, r.ZERO, endIfLabel);
+            node.sentenciasVerdadero.accept(this);
+            this.code.addLabel(endIfLabel);
+        }
+        this.code.comment('Fin-del-If');
     }
 
     /**
@@ -184,7 +185,37 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitSwitch']}
     */
     visitSwitch(node) {
-    
+        this.code.comment('Inicio-del-Switch');
+        node.condicion.accept(this);
+        this.code.popObject(r.T1);
+        const LabelFinalizacion = this.code.getLabel();
+        this.PilaBreaks.push({ type: 'switch', label: LabelFinalizacion });
+        const LabelCasos = node.cases.map(() => this.code.getLabel());
+        const LabelDefault = node.default1 ? this.code.getLabel() : LabelFinalizacion;
+
+        node.cases.forEach((caseNode, index) => {
+            caseNode.valor.accept(this);
+            this.code.popObject(r.T0);
+            this.code.beq(r.T1, r.T0, LabelCasos[index]);
+        });
+        this.code.j(LabelDefault);
+
+        node.cases.forEach((caseNode, index) => {
+            this.code.addLabel(LabelCasos[index]);
+            caseNode.bloquecase.forEach(sentencia => {
+                sentencia.accept(this)
+            });
+        });
+
+        if (node.default1) {
+            this.code.addLabel(LabelDefault);
+            node.default1.sentencias.forEach(sentencia => {
+                sentencia.accept(this);
+            });
+        }
+        this.code.addLabel(LabelFinalizacion);
+        this.PilaBreaks.pop();
+        this.code.comment('Fin-del-Switch');
     }
 
     /**
@@ -198,6 +229,12 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitBreak']}
     */
     visitBreak(node) {
+        this.code.comment('Break');
+        if(this.PilaBreaks.length === 0) {
+            throw new Error('Break fuera De Un Ciclo o Switch');
+        }
+        const {type, label} = this.PilaBreaks[this.PilaBreaks.length - 1];
+        this.code.j(label);
     }
     
     /**

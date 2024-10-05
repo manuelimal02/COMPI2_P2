@@ -1,4 +1,4 @@
-import { registers as r } from "./Constantes.js";
+import { Registros as r } from "./Registros.js";
 import { Generador } from "./Generador.js";
 export class OperacionBinariaHandler {
     /**
@@ -73,6 +73,11 @@ export class OperacionBinariaHandler {
             }
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
+            //string + string = string
+            this.code.add(r.A0, r.ZERO, r.T1);
+            this.code.add(r.A1, r.ZERO, r.T0);
+            this.code.callBuiltin('ConcatenarString');
+            return { type: 'string', length: 4 };
         }  
     }
 

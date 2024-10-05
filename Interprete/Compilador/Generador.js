@@ -1,5 +1,6 @@
-import { registers as r } from "./Constantes.js";
-import { ManejoCadena } from "./Cadena.js";
+import { Registros as r } from "./Registros.js";
+import { CadenaEnBytes } from "./Cadena.js";
+import { Constructores } from "./Contructores.js";
 
 class Instruction {
     constructor(instruccion, rd, rs1, rs2) {
@@ -21,10 +22,21 @@ class Instruction {
 export class Generador {
 
     constructor() {
-
         this.instrucciones = []
         this.objectStack = []
         this.depth = 0 
+        this._usedBuiltins = new Set()
+        this._labelCounter = 0;
+    }
+
+    getLabel() {
+        return `L${this._labelCounter++}`
+    }
+
+    addLabel(label) {
+        label = label || this.getLabel()
+        this.instrucciones.push(new Instruction(`${label}:`))
+        return label
     }
 
     add(rd, rs1, rs2) {
@@ -80,6 +92,14 @@ export class Generador {
         this.instrucciones.push(new Instruction('sw', rs1, `${inmediato}(${rs2})`))
     }
 
+    sb (rs1, rs2, inmediato = 0) {
+        this.instrucciones.push(new Instruction('sb', rs1, `${inmediato}(${rs2})`))
+    }
+
+    lb(rd, rs1, inmediato = 0) {
+        this.instrucciones.push(new Instruction('lb', rd, `${inmediato}(${rs1})`))
+    }
+
     lw(rd, rs1, inmediato = 0) {
         this.instrucciones.push(new Instruction('lw', rd, `${inmediato}(${rs1})`))
     }
@@ -90,6 +110,37 @@ export class Generador {
 
     li(rd, inmediato) {
         this.instrucciones.push(new Instruction('li', rd, inmediato))
+    }
+
+    // Saltos Condicionales
+
+    beq(rs1, rs2, label) {
+        this.instrucciones.push(new Instruction('beq', rs1, rs2, label))
+    }
+
+    bne(rs1, rs2, label) {
+        this.instrucciones.push(new Instruction('bne', rs1, rs2, label))
+    }
+
+    blt(rs1, rs2, label) {
+        this.instrucciones.push(new Instruction('blt', rs1, rs2, label))
+    }
+
+    bge(rs1, rs2, label) {
+        this.instrucciones.push(new Instruction('bge', rs1, rs2, label))
+    }
+
+    jal(label) {
+        this.instrucciones.push(new Instruction('jal', label))
+    }
+
+    j(label) {
+        this.instrucciones.push(new Instruction('j', label))
+        
+    }
+
+    ret () {
+        this.instrucciones.push(new Instruction('ret'))
     }
 
     push(rd = r.T0) {
@@ -104,6 +155,14 @@ export class Generador {
 
     ecall() {
         this.instrucciones.push(new Instruction('ecall'))
+    }
+
+    callBuiltin(builtinName) {
+        if (!Constructores[builtinName]) {
+            throw new Error(`Builtin ${builtinName} not found`)
+        }
+        this._usedBuiltins.add(builtinName)
+        this.jal(builtinName)
     }
 
     printInt(rd = r.A0) {
@@ -177,25 +236,21 @@ export class Generador {
                 this.push()
                 length = 4;
                 break;
-
             case 'string':
-                const ArrayCadena = ManejoCadena(object.valor);
-                this.addi(r.T0, r.HP, 4); 
-                this.push(r.T0); 
-                ArrayCadena.forEach((block32bits) => {
-                    this.li(r.T0, block32bits);
-                    this.addi(r.HP, r.HP, 4);
-                    this.sw(r.T0, r.HP);
+                const stringArray = CadenaEnBytes(object.valor);
+                this.push(r.HP);
+                stringArray.forEach((charCode) => {
+                    this.li(r.T0, charCode);
+                    this.sb(r.T0, r.HP);
+                    this.addi(r.HP, r.HP, 1);
                 });
                 length = 4;
                 break;
-
             case 'char':
                 this.li(r.T0, object.valor);
                 this.push(r.T0);
                 length = 4;                    
                 break;
-
             case 'boolean':
                 this.li(r.T0, object.valor ? 1 : 0);
                 this.push();
@@ -263,14 +318,19 @@ export class Generador {
     }
 
     toString() {
-        this.endProgram();
+        this.endProgram()
+        Array.from(this._usedBuiltins).forEach(builtinName => {
+            this.addLabel(builtinName)
+            Constructores[builtinName](this)
+            this.ret()
+        })
         return `.data
-                        heap:
+                    heap:
                 .text
-                # Inicializando el heap pointer
+                # inicializando el heap pointer
                     la ${r.HP}, heap
                 main:
                     ${this.instrucciones.map(instruccion => `${instruccion}`).join('\n')}
-            `
+                    `
     }
 }

@@ -1,4 +1,4 @@
-import { registers as r } from "./Constantes.js";
+import { Registros as r } from "./Registros.js";
 export class OperacionUnariaHandler {
     /**
      * @param {string} operador

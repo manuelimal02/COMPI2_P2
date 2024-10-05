@@ -13,6 +13,7 @@ export function FuncionArchivo() {
     const AbrirArchivo = document.getElementById('AbrirArchivo');
     const CrearArchivo = document.getElementById('CrearArchivo');
     const GuardarArchivo = document.getElementById('GuardarArchivo');
+    const DescargarArchivo = document.getElementById('DescargarArchivo');
     const TablaSimbolos = document.getElementById('TablaSimbolos');
     const TablaErrores = document.getElementById('TablaErrores');
 
@@ -54,6 +55,20 @@ export function FuncionArchivo() {
         salida.value = "";
         ActualizarNumeroLinea(entrada, document.getElementById('lnEntrada'));
         ActualizarNumeroLinea(salida, document.getElementById('lnSalida'));
+    }
+
+    function handleDescargarArchivo() {
+        if (salida.value.trim() !== "") {
+            const debeGuardar = confirm("¿Desea Descagar Un Archivo Con La Traducción Actual?");
+            if (debeGuardar) {
+                const nombreArchivo = prompt("Ingrese Nombre De Archivo .S", "DescargarTraducciónEnsamblador.s");
+                if (nombreArchivo) {
+                    ContenidoArchivo(salida.value, nombreArchivo);
+                }
+            }
+        }else{
+            alert("No Hay Contenido Para Crear.");
+        }
     }
 
     async function handleGuardarArchivo() {
@@ -257,6 +272,10 @@ export function FuncionArchivo() {
 
     GuardarArchivo.addEventListener('click', () => {
         handleGuardarArchivo();
+    });
+
+    DescargarArchivo.addEventListener('click', () => {
+        handleDescargarArchivo();
     });
 
     TablaSimbolos.addEventListener('click', () => {
