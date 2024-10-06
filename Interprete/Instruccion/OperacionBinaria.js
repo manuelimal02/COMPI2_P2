@@ -1,4 +1,3 @@
-import ErrorManager from "../Errores/Errores.js";
 export class OperacionBinariaHandler {
     /**
      * @param {string} operador
@@ -52,26 +51,26 @@ export class OperacionBinariaHandler {
     validarSuma() {
         if (this.izquierda.tipo === 'int') {
             switch (this.derecha.tipo) {
+                //int + int = int
                 case 'int':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'int'};
+                //int + float = float
                 case 'float':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'float') {
             switch(this.derecha.tipo) {
+                //float + int = float
                 case 'int':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'float'};
+                //float + float = float
                 case 'float':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'string') {
@@ -79,9 +78,7 @@ export class OperacionBinariaHandler {
             if(this.derecha.tipo === 'string') {
                 return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'string'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }  
     }
@@ -96,9 +93,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor - this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'float') {
@@ -110,9 +105,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor - this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
     }
@@ -127,9 +120,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor * this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'float') {
@@ -141,18 +132,14 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor * this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
     }
 
     validarDivision() {
         if (this.derecha.valor === 0) {
-            console.warn(`Advertencia: División Por Cero. El Resultado Será null." ${this.izquierda.valor}" Y "${this.derecha.valor}".`);
-            ErrorManager.NuevoError(`Advertencia: División Por Cero. El Resultado Será null.`,0,0);   
-            return {valor: null};
+            throw new Error("Advertencia: División por cero. Resultado será null.");
         }
         if (this.izquierda.tipo === 'int') {
             switch (this.derecha.tipo) {
@@ -163,9 +150,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor / this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'float') {
@@ -177,25 +162,19 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor / this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0); 
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
     }
 
     validarModulo() {
         if (this.derecha.valor === 0) {
-            console.warn(`Advertencia: Módulo Por Cero. El Resultado Será null." ${this.izquierda.valor}" Y "${this.derecha.valor}".`);
-            ErrorManager.NuevoError(`Advertencia: Módulo Por Cero. El Resultado Será null.`,0,0);   
-            return {valor: null};
+            throw new Error("Advertencia: Módulo por cero. Resultado será null.");
         }
         if (this.izquierda.tipo === 'int' && this.derecha.tipo === 'int') {
             return {valor: this.izquierda.valor % this.derecha.valor, tipo: 'int'};
         }else{
-            console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-            ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-            return {valor: null};
+            throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
         }
     }
     
@@ -207,9 +186,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor === this.derecha.valor, tipo: 'boolean'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'float') {
@@ -219,41 +196,31 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor === this.derecha.valor, tipo: 'boolean'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'string') {
             if(this.derecha.tipo === 'string') {
                 return {valor: this.izquierda.valor === this.derecha.valor, tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'boolean') {
             if(this.derecha.tipo === 'boolean') {
                 return {valor: this.izquierda.valor === this.derecha.valor, tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'char') {
             if (this.derecha.tipo === 'char') {
                 return {valor: this.izquierda.valor === this.derecha.valor, tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
-        console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+        throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
     }
 
     validarDesigualdad() {
@@ -264,9 +231,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor !== this.derecha.valor, tipo: 'boolean'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'float') {
@@ -276,41 +241,31 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor !== this.derecha.valor, tipo: 'boolean'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'string') {
             if (this.derecha.tipo === 'string') {
                 return {valor: this.izquierda.valor !== this.derecha.valor , tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'boolean') {
             if (this.derecha.tipo === 'boolean') {
                 return {valor: this.izquierda.valor !== this.derecha.valor, tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'char') {
             if (this.derecha.tipo === 'char') {
                 return {valor: this.izquierda.valor !== this.derecha.valor, tipo: 'boolean'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
-        console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+        throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
     }
 
     validarMayorQue() {
@@ -336,26 +291,20 @@ export class OperacionBinariaHandler {
     validarTiposParaComparacion() {
         const tiposValidos = ['int', 'float', 'char'];
         if (!tiposValidos.includes(this.izquierda.tipo) || !tiposValidos.includes(this.derecha.tipo)) {
-            console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-            ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-            return {valor: null};
+            throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
         }
         // Permitir comparaciones entre int y float, pero no otros tipos mezclados
         if (this.izquierda.tipo !== this.derecha.tipo) {
             const tiposPermitidos = (this.izquierda.tipo === 'int' && this.derecha.tipo === 'float') ||
                                     (this.izquierda.tipo === 'float' && this.derecha.tipo === 'int');
             if (!tiposPermitidos) {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         // Comparación de caracteres
         if (this.izquierda.tipo === 'char' && this.derecha.tipo === 'char') {
             if (this.izquierda.valor.length !== 1 || this.derecha.valor.length !== 1) {
-                console.warn(`Error: Solo Se Puede Comparar Un Caracter Con Otro Caracter. "${this.izquierda.valor}" Y "${this.derecha.valor}".`);
-                ErrorManager.NuevoError(`Error: Solo Se Puede Comparar Un Caracter Con Otro Caracter.`,0,0);   
-                return {valor: null};
+                throw new Error(`Error: Comparación De Caracteres Solo Permitida Entre Literales De Un Solo Carácter.`);
             }
             // Convertir a valores ASCII para comparación
             this.izquierda.valor = this.izquierda.valor.charCodeAt(0);
@@ -367,20 +316,16 @@ export class OperacionBinariaHandler {
     validarAnd() {
         if (this.izquierda.tipo === 'boolean' && this.derecha.tipo === 'boolean') {
             return {valor: this.izquierda.valor && this.derecha.valor, tipo: 'boolean'};
-        } else {
-            console.warn(`Error: Operación AND Solo Se Permite Entre Valores Booleanos." ${this.izquierda.valor}" Y "${this.derecha.valor}".`);
-            ErrorManager.NuevoError(`Error: Operación AND Solo Se Permite Entre Valores Booleanos.`,0,0);   
-            return {valor: null};    
+        } else {    
+            throw new Error(`Error: Operación AND Solo Se Permite Entre Valores Booleanos.`);
         }
     }
 
     validarOr() {
         if(this.izquierda.tipo === 'boolean' && this.derecha.tipo === 'boolean') {
             return {valor: this.izquierda.valor || this.derecha.valor, tipo: 'boolean'};
-        } else {  
-            console.warn(`Error: Operación OR Solo Se Permite Entre Valores Booleanos." ${this.izquierda.valor}" Y "${this.derecha.valor}".`);
-            ErrorManager.NuevoError(`Error: Operación OR Solo Se Permite Entre Valores Booleanos.`,0,0);
-            return {valor: null};  
+        } else {    
+            throw new Error(`Error: Operación OR Solo Se Permite Entre Valores Booleanos.`);
         }
     }
 
@@ -391,9 +336,7 @@ export class OperacionBinariaHandler {
                 case 'int':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'int'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'float') {
@@ -405,9 +348,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if(this.izquierda.tipo === 'string') {
@@ -415,9 +356,7 @@ export class OperacionBinariaHandler {
             if(this.derecha.tipo === 'string') {
                 return {valor: this.izquierda.valor + this.derecha.valor, tipo: 'string'};
             } else {
-                console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
     }
@@ -429,9 +368,7 @@ export class OperacionBinariaHandler {
                 case 'int':
                     return {valor: this.izquierda.valor - this.derecha.valor, tipo: 'int'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
         if (this.izquierda.tipo === 'float') {
@@ -443,9 +380,7 @@ export class OperacionBinariaHandler {
                 case 'float':
                     return {valor: this.izquierda.valor - this.derecha.valor, tipo: 'float'};
                 default:
-                    console.warn(` Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
-                    ErrorManager.NuevoError(`Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`,0,0);   
-                    return {valor: null};
+                    throw new Error(`Error: Operación No Permitida Entre Tipos: "${this.izquierda.tipo}" Y "${this.derecha.tipo}".`);
             }
         }
     }

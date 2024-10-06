@@ -1,4 +1,4 @@
-import ErrorManager from "../Errores/Errores.js";
+
 export class DeclaracionVariableHandler {
     constructor(tipo, nombre, expresion, entornoActual, linea, columna, visitor) {
         this.tipo = tipo;
@@ -43,11 +43,11 @@ export class DeclaracionVariableHandler {
 
     ValorPorDefecto(tipo) {
         switch (tipo) {
-            case 'int': return {valor: null, tipo: 'int'};
-            case 'float': return {valor: null, tipo: 'float'};
-            case 'string': return {valor: null, tipo: 'string'};
-            case 'boolean': return {valor: null, tipo: 'boolean'};
-            case 'char': return {valor: null, tipo: 'char'};
+            case 'int': return {valor: 0, tipo: 'int'};
+            case 'float': return {valor: 0.0, tipo: 'float'};
+            case 'string': return {valor: '', tipo: 'string'};
+            case 'boolean': return {valor: true, tipo: 'boolean'};
+            case 'char': return {valor: '\0', tipo: 'char'};
             default: throw new Error(`Tipo De Variable: "${tipo}" No Válido.`);
         }
     }
@@ -62,8 +62,7 @@ export class DeclaracionVariableHandler {
         if (tipoInferido === valor.tipo) {
             entorno.setVariable(tipoInferido, this.nombre, valor, this.linea, this.columna);
         } else {
-            ErrorManager.NuevoError(`La Variable: "${this.nombre}" Debe Ser Tipo: "${tipoInferido}".`, this.linea, this.columna);
-            entorno.setVariable(tipoInferido, this.nombre, {valor: null, tipo:tipoInferido}, this.linea, this.columna);
+            throw new Error(`La Variable: "${this.nombre}" Debe Ser Tipo: "${tipoInferido}".`);
         }
     }
 }

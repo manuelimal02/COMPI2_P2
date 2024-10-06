@@ -9,7 +9,6 @@ import { Invocable } from "../Instruccion/Invocable.js";
 import { BreakException, ContinueException, ReturnException } from "../Instruccion/Transferencia.js";
 import Nodos from "../Nodo/Nodos.js";
 import { Foranea } from "../Instruccion/Foranea.js";
-import ErrorManager from "../Errores/Errores.js";
 
 export class Interprete extends BaseVisitor {
 
@@ -40,11 +39,6 @@ export class Interprete extends BaseVisitor {
     visitOperacionBinaria(node) {
         const izquierda = node.izquierda.accept(this);
         const derecha = node.derecha.accept(this);
-        if (izquierda.valor === null || derecha.valor === null) {
-            console.warn('El Valor De La Operación Binaria Es Nulo.');
-            ErrorManager.NuevoError("El Valor De La Operación Binaria Es Nulo.", node.location.start.line, node.location.start.column);
-            return {valor: null, tipo: 'null'};
-        }
         const handler = new OperacionBinariaHandler(node.operador, izquierda, derecha);
         return handler.EjecutarHandler();
     }
@@ -54,11 +48,6 @@ export class Interprete extends BaseVisitor {
     */
     visitOperacionUnaria(node) {
         const izquierda = node.expresion.accept(this);
-        if (izquierda.valor === null) {
-            console.warn('El Valor De La Operación Unaria Es Nulo.');
-            ErrorManager.NuevoError("El Valor De La Operación Unaria Es Nulo.", node.location.start.line, node.location.start.column);
-            return {valor: null, tipo: izquierda.tipo};
-        }
         const handler = new OperacionUnariaHandler(node.operador, izquierda);
         return handler.EjecutarHandler();
     }
@@ -136,9 +125,6 @@ export class Interprete extends BaseVisitor {
     visitPrint(node) {
         const valores = node.expresion.map(expresion => {
             const simbolo = expresion.accept(this);
-            if (simbolo.valor === null) {
-                return "null";
-            }
             if (simbolo.tipo === 'float') {
                 if (Number.isInteger(simbolo.valor)) {
                     simbolo.valor = simbolo.valor.toFixed(1);
