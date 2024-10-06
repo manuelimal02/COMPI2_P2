@@ -240,7 +240,6 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string != string = boolean
-                //Diferente
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean != boolean = boolean

@@ -81,8 +81,39 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitDeclaracionVar']}
     */
     visitDeclaracionVar(node) {
-        node.expresion.accept(this);
+        this.code.comment(`Inicio-Declaracion-Variable`);
+        if (node.expresion) {
+            node.expresion.accept(this);
+        } else {
+            switch (node.tipo) {
+                case 'int':
+                    this.code.li(r.T0, 0);
+                    this.code.push(r.T0);
+                    this.code.pushObject({ type: 'int', length: 4 });
+                    break;
+                case 'float':
+                    break;
+                case 'boolean':
+                    this.code.li(r.T0, 0);
+                    this.code.push(r.T0);
+                    this.code.pushObject({ type: 'boolean', length: 4 });
+                    break;
+                case 'string':
+                    this.code.push(r.HP);
+                    this.code.li(r.T0, 0);
+                    this.code.sb(r.T0, r.HP);
+                    this.code.addi(r.HP, r.HP, 1);
+                    this.code.pushObject({ type: 'string', length: 4 });
+                    break;
+                case 'char':
+                    this.code.li(r.T0, 0);
+                    this.code.push(r.T0);
+                    this.code.pushObject({ type: 'char', length: 4 });
+                    break;
+            }
+        }
         this.code.tagObject(node.id);
+        this.code.comment(`Fin-Declaracion-Variable`);
     }
 
     /**

@@ -4157,9 +4157,6 @@ return expansion.reduce(
                 s1 = peg$f102();
               }
               s0 = s1;
-              if (s0 === peg$FAILED) {
-                s0 = peg$parseIDENTIFICADOR();
-              }
             }
           }
         }
