@@ -217,9 +217,9 @@ function peg$parse(input, options) {
   var peg$c37 = "!";
   var peg$c38 = "parseInt";
   var peg$c39 = "parsefloat";
-  var peg$c40 = "tostring";
-  var peg$c41 = "tolowercase";
-  var peg$c42 = "touppercase";
+  var peg$c40 = "toString";
+  var peg$c41 = "toLowerCase";
+  var peg$c42 = "toUpperCase";
   var peg$c43 = "typeof";
   var peg$c44 = ".indexOf";
   var peg$c45 = ".join()";
@@ -293,9 +293,9 @@ function peg$parse(input, options) {
   var peg$e40 = peg$literalExpectation("!", false);
   var peg$e41 = peg$literalExpectation("parseInt", false);
   var peg$e42 = peg$literalExpectation("parsefloat", false);
-  var peg$e43 = peg$literalExpectation("tostring", false);
-  var peg$e44 = peg$literalExpectation("tolowercase", false);
-  var peg$e45 = peg$literalExpectation("touppercase", false);
+  var peg$e43 = peg$literalExpectation("toString", false);
+  var peg$e44 = peg$literalExpectation("toLowerCase", false);
+  var peg$e45 = peg$literalExpectation("toUpperCase", false);
   var peg$e46 = peg$literalExpectation("typeof", false);
   var peg$e47 = peg$literalExpectation(".indexOf", false);
   var peg$e48 = peg$literalExpectation(".join()", false);
@@ -4801,6 +4801,10 @@ return expansion.reduce(
         'Return': Nodos.Return,
         'Llamada': Nodos.Llamada, 
         'ParseInt': Nodos.ParseInt,
+        'ParseFloat': Nodos.ParseFloat,
+        'ToString': Nodos.ToString,
+        'ToLowerCase': Nodos.ToLowerCase,
+        'ToUpperCase': Nodos.ToUpperCase,
         'TypeOf': Nodos.TypeOf,
         'DeclaracionArreglo1': Nodos.DeclaracionArreglo1,
         'DeclaracionArreglo2': Nodos.DeclaracionArreglo2,

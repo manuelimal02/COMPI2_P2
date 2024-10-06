@@ -24,6 +24,10 @@
         'Return': Nodos.Return,
         'Llamada': Nodos.Llamada, 
         'ParseInt': Nodos.ParseInt,
+        'ParseFloat': Nodos.ParseFloat,
+        'ToString': Nodos.ToString,
+        'ToLowerCase': Nodos.ToLowerCase,
+        'ToUpperCase': Nodos.ToUpperCase,
         'TypeOf': Nodos.TypeOf,
         'DeclaracionArreglo1': Nodos.DeclaracionArreglo1,
         'DeclaracionArreglo2': Nodos.DeclaracionArreglo2,
@@ -288,11 +292,11 @@ UNARIA = "-" _ expresion:UNARIA
             {return NuevoNodo('ParseInt', {Argumento})}
         / "parsefloat" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
             {return NuevoNodo('ParseFloat', {Argumento})}
-        / "tostring" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+        / "toString" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
             {return NuevoNodo('ToString', {Argumento})}
-        / "tolowercase" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
+        / "toLowerCase" _ "(" _ Argumento:OTRAEXPRESION _ ")" 
             {return NuevoNodo('ToLowerCase', {Argumento})}
-        / "touppercase" _ "(" _ Argumento:OTRAEXPRESION _ ")"
+        / "toUpperCase" _ "(" _ Argumento:OTRAEXPRESION _ ")"
             {return NuevoNodo('ToUpperCase', {Argumento})}
         / "typeof"_ Argumento:OTRAEXPRESION 
             {return NuevoNodo('TypeOf', {Argumento})}
