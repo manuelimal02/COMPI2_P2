@@ -7,6 +7,12 @@
  * @typedef {import('../Nodo/Nodos.js').OperacionBinaria} OperacionBinaria
 
 
+ * @typedef {import('../Nodo/Nodos.js').OperacionAND} OperacionAND
+
+
+ * @typedef {import('../Nodo/Nodos.js').OperacionOR} OperacionOR
+
+
  * @typedef {import('../Nodo/Nodos.js').OperacionUnaria} OperacionUnaria
 
 
@@ -139,6 +145,24 @@ export class BaseVisitor {
      */
     visitOperacionBinaria(node) {
         throw new Error('Metodo visitOperacionBinaria no implementado');
+    }
+    
+
+    /**
+     * @param {OperacionAND} node
+     * @returns {any}
+     */
+    visitOperacionAND(node) {
+        throw new Error('Metodo visitOperacionAND no implementado');
+    }
+    
+
+    /**
+     * @param {OperacionOR} node
+     * @returns {any}
+     */
+    visitOperacionOR(node) {
+        throw new Error('Metodo visitOperacionOR no implementado');
     }
     
 

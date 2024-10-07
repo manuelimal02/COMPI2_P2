@@ -398,7 +398,7 @@ function peg$parse(input, options) {
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
         const { tipo, derecha } = operacionActual
-        return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
+        return NuevoNodo('OperacionOR', {izquierda: operacionAnterior, derecha })
         },
         izquierda
     )
@@ -408,7 +408,7 @@ function peg$parse(input, options) {
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
             const { tipo, derecha } = operacionActual
-            return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
+            return NuevoNodo('OperacionAND', { izquierda: operacionAnterior, derecha })
             },
             izquierda
         )
@@ -4724,6 +4724,8 @@ return expansion.reduce(
         'DeclaracionVar': Nodos.DeclaracionVar,
         'ReferenciaVariable': Nodos.ReferenciaVariable,
         'OperacionBinaria': Nodos.OperacionBinaria,
+        'OperacionAND': Nodos.OperacionAND,
+        'OperacionOR': Nodos.OperacionOR,
         'OperacionUnaria': Nodos.OperacionUnaria,
         'Print': Nodos.Print,
         'asignacion': Nodos.Asignacion,

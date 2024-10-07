@@ -10,6 +10,8 @@
         'DeclaracionVar': Nodos.DeclaracionVar,
         'ReferenciaVariable': Nodos.ReferenciaVariable,
         'OperacionBinaria': Nodos.OperacionBinaria,
+        'OperacionAND': Nodos.OperacionAND,
+        'OperacionOR': Nodos.OperacionOR,
         'OperacionUnaria': Nodos.OperacionUnaria,
         'Print': Nodos.Print,
         'asignacion': Nodos.Asignacion,
@@ -218,7 +220,7 @@ OR = izquierda:AND expansion:(_ operador:("||") _ derecha:AND
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
         const { tipo, derecha } = operacionActual
-        return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
+        return NuevoNodo('OperacionOR', {izquierda: operacionAnterior, derecha })
         },
         izquierda
     )
@@ -229,7 +231,7 @@ AND = izquierda:IGUALDAD expansion:(_ operador:("&&") _ derecha:IGUALDAD
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
             const { tipo, derecha } = operacionActual
-            return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
+            return NuevoNodo('OperacionAND', { izquierda: operacionAnterior, derecha })
             },
             izquierda
         )

@@ -26,6 +26,53 @@ export class Compilador extends BaseVisitor {
     }
 
     /**
+    * @type {BaseVisitor['visitOperacionAND']}
+    */
+    visitOperacionAND(node) {
+        node.izquierda.accept(this); // izquierda
+        this.code.popObject(r.T0); // izquierda
+        const labelFalse = this.code.getLabel();
+        const labelEnd = this.code.getLabel();
+        this.code.beq(r.T0, r.ZERO, labelFalse); // if (!izquierda) goto labelFalse
+        node.derecha.accept(this); // derecha
+        this.code.popObject(r.T0); // derecha
+        this.code.beq(r.T0, r.ZERO, labelFalse); // if (!derecha) goto labelFalse
+        this.code.li(r.T0, 1);
+        this.code.push(r.T0);
+        this.code.j(labelEnd);
+        this.code.addLabel(labelFalse);
+        this.code.li(r.T0, 0);
+        this.code.push(r.T0);
+        this.code.addLabel(labelEnd);
+        this.code.pushObject({ type: 'boolean', length: 4 });
+        return
+    }
+    
+
+    /**
+    * @type {BaseVisitor['visitOperacionOR']}
+    */
+    visitOperacionOR(node) {
+        node.izquierda.accept(this); // izquierda
+        this.code.popObject(r.T0); // izquierda
+        const labelTrue = this.code.getLabel();
+        const labelEnd = this.code.getLabel();
+        this.code.bne(r.T0, r.ZERO, labelTrue); // if (izquierda) goto labelTrue
+        node.derecha.accept(this); // derecha
+        this.code.popObject(r.T0); // derecha
+        this.code.bne(r.T0, r.ZERO, labelTrue); // if (derecha) goto labelTrue
+        this.code.li(r.T0, 0);
+        this.code.push(r.T0);
+        this.code.j(labelEnd);
+        this.code.addLabel(labelTrue);
+        this.code.li(r.T0, 1);
+        this.code.push(r.T0);
+        this.code.addLabel(labelEnd);
+        this.code.pushObject({ type: 'boolean', length: 4 });
+        return
+    }
+
+    /**
     * @type {BaseVisitor['visitOperacionUnaria']}
     */
     visitOperacionUnaria(node) {
@@ -270,7 +317,6 @@ export class Compilador extends BaseVisitor {
         node.incremento.accept(this);
         this.code.j(startFor);
         this.code.addLabel(endFor);
-        this.code.endScope();
         this.code.comment('Fin-del-For');
     }
 

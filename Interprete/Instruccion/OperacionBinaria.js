@@ -39,10 +39,6 @@ export class OperacionBinariaHandler {
                 return this.validarMenorQue();
             case '<=':
                 return this.validarMenorIgualQue();
-            case '&&':
-                return this.validarAnd();
-            case '||':
-                return this.validarOr();
             default:
                 throw new Error(`Operador No Reconocido: ${this.operador}`);
         }
@@ -312,23 +308,6 @@ export class OperacionBinariaHandler {
         }
     }
     
-
-    validarAnd() {
-        if (this.izquierda.tipo === 'boolean' && this.derecha.tipo === 'boolean') {
-            return {valor: this.izquierda.valor && this.derecha.valor, tipo: 'boolean'};
-        } else {    
-            throw new Error(`Error: Operación AND Solo Se Permite Entre Valores Booleanos.`);
-        }
-    }
-
-    validarOr() {
-        if(this.izquierda.tipo === 'boolean' && this.derecha.tipo === 'boolean') {
-            return {valor: this.izquierda.valor || this.derecha.valor, tipo: 'boolean'};
-        } else {    
-            throw new Error(`Error: Operación OR Solo Se Permite Entre Valores Booleanos.`);
-        }
-    }
-
     validarSumaImplicita() {
         if (this.izquierda.tipo === 'int') {
             switch (this.derecha.tipo) {

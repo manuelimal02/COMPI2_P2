@@ -82,6 +82,72 @@ export class OperacionBinaria extends Expresion {
     }
 }
     
+export class OperacionAND extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.izquierda Expresion izquierda de la operacion
+ * @param {Expresion} options.derecha Expresion derecha de la operacion
+    */
+    constructor({ izquierda, derecha }) {
+        super();
+        
+        /**
+         * Expresion izquierda de la operacion
+         * @type {Expresion}
+        */
+        this.izquierda = izquierda;
+
+
+        /**
+         * Expresion derecha de la operacion
+         * @type {Expresion}
+        */
+        this.derecha = derecha;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitOperacionAND(this);
+    }
+}
+    
+export class OperacionOR extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.izquierda Expresion izquierda de la operacion
+ * @param {Expresion} options.derecha Expresion derecha de la operacion
+    */
+    constructor({ izquierda, derecha }) {
+        super();
+        
+        /**
+         * Expresion izquierda de la operacion
+         * @type {Expresion}
+        */
+        this.izquierda = izquierda;
+
+
+        /**
+         * Expresion derecha de la operacion
+         * @type {Expresion}
+        */
+        this.derecha = derecha;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitOperacionOR(this);
+    }
+}
+    
 export class OperacionUnaria extends Expresion {
 
     /**
@@ -1258,4 +1324,4 @@ export class FuncionForanea extends Expresion {
     }
 }
     
-export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }
+export default { Expresion, OperacionBinaria, OperacionAND, OperacionOR, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }

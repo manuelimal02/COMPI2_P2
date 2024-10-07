@@ -40,10 +40,6 @@ export class OperacionBinariaHandler {
                 return this.validarMenorQue();
             case '<=':
                 return this.validarMenorIgualQue();
-            case '&&':
-                return this.validarAnd();
-            case '||':
-                return this.validarOr();
         }
     }
 
@@ -174,7 +170,7 @@ export class OperacionBinariaHandler {
                 // int == int = boolean
                 case 'int':
                 // int == float = boolean
-                this.code.xor(r.T0, r.T0, r.T1);
+                this.code.xor(r.T0, r.T1, r.T0);
                 this.code.seqz(r.T0, r.T0);
                 this.code.push(r.T0);
                 return { type: 'boolean', length: 4 };
@@ -197,7 +193,7 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean == boolean = boolean
-            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.xor(r.T0, r.T1, r.T0);
             this.code.seqz(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
@@ -205,7 +201,7 @@ export class OperacionBinariaHandler {
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char == char = boolean
-            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.xor(r.T0, r.T1, r.T0);
             this.code.seqz(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
@@ -218,7 +214,7 @@ export class OperacionBinariaHandler {
             switch(this.derecha.type) {
                 // int != int = boolean
                 case 'int':
-                    this.code.xor(r.T0, r.T0, r.T1);
+                    this.code.xor(r.T0, r.T1, r.T0);
                     this.code.snez(r.T0, r.T0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -243,7 +239,7 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean != boolean = boolean
-            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.xor(r.T0, r.T1, r.T0);
             this.code.snez(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
@@ -251,7 +247,7 @@ export class OperacionBinariaHandler {
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char != char = boolean
-            this.code.xor(r.T0, r.T0, r.T1);
+            this.code.xor(r.T0, r.T1, r.T0);
             this.code.snez(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
@@ -364,7 +360,8 @@ export class OperacionBinariaHandler {
             switch(this.derecha.type) {
                 // int <= int = boolean
                 case 'int':
-                    this.code.slt(r.T0, r.T1, r.T0);
+                    this.code.slt(r.T0, r.T0, r.T1);
+                    this.code.xori(r.T0, r.T0, 1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
 
@@ -384,28 +381,12 @@ export class OperacionBinariaHandler {
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
-            this.code.slt(r.T0, r.T1, r.T0);
+            this.code.slt(r.T0, r.T0, r.T1);
+            this.code.xori(r.T0, r.T0, 1);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
             
         }
     }
 
-    validarAnd() {
-        if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
-            // boolean && boolean = boolean
-            this.code.and(r.T0, r.T0, r.T1);
-            this.code.push(r.T0);
-            return { type: 'boolean', length: 4 };
-        }
-    }
-
-    validarOr() {
-        if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
-            // boolean || boolean = boolean
-            this.code.or(r.T0, r.T0, r.T1);
-            this.code.push(r.T0);
-            return { type: 'boolean', length: 4 };
-        }
-    }
 }
