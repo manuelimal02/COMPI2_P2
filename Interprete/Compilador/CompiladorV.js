@@ -149,12 +149,6 @@ export class Compilador extends BaseVisitor {
     }
     
     /**
-    * @type {BaseVisitor['visitTernario']}
-    */
-    visitTernario(node) {
-    }
-    
-    /**
     * @type {BaseVisitor['visitAsignacion']}
     */
     visitAsignacion(node) {
@@ -210,8 +204,19 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitWhile']}
     */
     visitWhile(node) {
-
+        this.code.comment('Inicio-del-While');
+        const startWhile = this.code.getLabel();
+        const endWhile = this.code.getLabel();
+        this.code.addLabel(startWhile);
+        node.condicion.accept(this);
+        this.code.popObject(r.T0);
+        this.code.beq(r.T0, r.ZERO, endWhile);
+        node.sentencias.accept(this);
+        this.code.j(startWhile);
+        this.code.addLabel(endWhile);
+        this.code.comment('Fin-del-While');
     }
+
     /**
     * @type {BaseVisitor['visitSwitch']}
     */
@@ -253,7 +258,20 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitFor']}
     */
     visitFor(node) {
-    
+        this.code.comment('Inicio-del-For');
+        node.declaracion.accept(this);
+        const startFor = this.code.getLabel();
+        const endFor = this.code.getLabel();
+        this.code.addLabel(startFor);
+        node.condicion.accept(this);
+        this.code.popObject(r.T0);
+        this.code.beq(r.T0, r.ZERO, endFor);
+        node.sentencia.accept(this);
+        node.incremento.accept(this);
+        this.code.j(startFor);
+        this.code.addLabel(endFor);
+        this.code.endScope();
+        this.code.comment('Fin-del-For');
     }
 
     /**

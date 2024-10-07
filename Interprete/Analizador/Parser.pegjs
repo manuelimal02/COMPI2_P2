@@ -12,7 +12,6 @@
         'OperacionBinaria': Nodos.OperacionBinaria,
         'OperacionUnaria': Nodos.OperacionUnaria,
         'Print': Nodos.Print,
-        'ternario': Nodos.Ternario,
         'asignacion': Nodos.Asignacion,
         'Bloque': Nodos.Bloque,
         'If': Nodos.If,
@@ -199,8 +198,8 @@ ASIGNACION = id:IDENTIFICADOR _ "=" _ asignacion:EXPRESION _ ";" _
 ASIGNACIONARREGLO = id:IDENTIFICADOR _ "[" _ index:EXPRESION _ "]" _ "=" _ valor:EXPRESION _ ";" _ 
             {return NuevoNodo('AsignacionArreglo', { id, index, valor })}
 
-EXPRESION = ternario:TERNARIO
-            {return ternario}
+EXPRESION = logico:LOGICO
+            {return logico}
             /booleano:BOOLEANO
             {return booleano}
             / agrupacion:AGRUPACION
@@ -211,10 +210,6 @@ EXPRESION = ternario:TERNARIO
             {return caracter}
             / cadena:CADENA
             {return cadena}
-
-TERNARIO =  condicion:LOGICO _ "?" _ verdadero:LOGICO _ ":"_ falso:LOGICO _ 
-            { return NuevoNodo('ternario', {condicion, verdadero, falso }) }
-            / LOGICO
 
 LOGICO = OR
 

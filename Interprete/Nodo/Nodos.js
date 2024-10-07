@@ -396,47 +396,6 @@ export class Print extends Expresion {
     }
 }
     
-export class Ternario extends Expresion {
-
-    /**
-    * @param {Object} options
-    * @param {Expresion} options.condicion Condicion a evaluar
- * @param {Expresion} options.verdadero Si la condicion es  verdadera
- * @param {Expresion} options.falso Si la condicion es falsa
-    */
-    constructor({ condicion, verdadero, falso }) {
-        super();
-        
-        /**
-         * Condicion a evaluar
-         * @type {Expresion}
-        */
-        this.condicion = condicion;
-
-
-        /**
-         * Si la condicion es  verdadera
-         * @type {Expresion}
-        */
-        this.verdadero = verdadero;
-
-
-        /**
-         * Si la condicion es falsa
-         * @type {Expresion}
-        */
-        this.falso = falso;
-
-    }
-
-    /**
-     * @param {BaseVisitor} visitor
-     */
-    accept(visitor) {
-        return visitor.visitTernario(this);
-    }
-}
-    
 export class Asignacion extends Expresion {
 
     /**
@@ -1299,4 +1258,4 @@ export class FuncionForanea extends Expresion {
     }
 }
     
-export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Ternario, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }
+export default { Expresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }

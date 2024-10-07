@@ -37,9 +37,6 @@
  * @typedef {import('../Nodo/Nodos.js').Print} Print
 
 
- * @typedef {import('../Nodo/Nodos.js').Ternario} Ternario
-
-
  * @typedef {import('../Nodo/Nodos.js').Asignacion} Asignacion
 
 
@@ -232,15 +229,6 @@ export class BaseVisitor {
      */
     visitPrint(node) {
         throw new Error('Metodo visitPrint no implementado');
-    }
-    
-
-    /**
-     * @param {Ternario} node
-     * @returns {any}
-     */
-    visitTernario(node) {
-        throw new Error('Metodo visitTernario no implementado');
     }
     
 
