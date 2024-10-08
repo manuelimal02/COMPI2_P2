@@ -40,11 +40,7 @@
         'AsignacionArreglo': Nodos.AsignacionArreglo,
         'ForEach': Nodos.ForEach,
         'FuncionForanea': Nodos.FuncionForanea,
-        'Struct': Nodos.Struct,
-        'DeclaracionStruct': Nodos.DeclaracionStruct,
-        'AsignacionStruct': Nodos.AsignacionStruct,
-        'AccesoAtributo': Nodos.AccesoAtributo, 
-        'AsignacionAtributo': Nodos.AsignacionAtributo
+        'SentenciaExpresion': Nodos.SentenciaExpresion
     }
     const nodo = new tipos[TipoNodo](props)
     nodo.location = location()
@@ -52,54 +48,26 @@
     }
 }
 
-PROGRAMA = _ instrucciones:INSTRUCCIONES* _ 
+PROGRAMA = _ instrucciones:DECLARACIONES* _ 
             {return instrucciones}
 
-INSTRUCCIONES = sentencia:SENTENCIA _
-            {return sentencia}
-            /declaracion:DECLARACION 
+DECLARACIONES = declaracion:DECLARACIONVARIABLE _
             {return declaracion}
+            /sentencia:SENTENCIA _
+            {return sentencia}
+            /funcion:DECLARACIONFUNCION _
+            {return funcion}
 
-SENTENCIA =  bloque:BLOQUE
-            {return bloque}
-            /funcionForanea:FUNCIONFORRANEA
-            {return funcionForanea}
-            / print_s:PRINT
-            {return print_s}
-            / if_1:IF
-            {return if_1}
-            /break_s:BREAK
-            {return break_s}
-            /continue_s:CONTUNUE
-            {return continue_s}
-            /return_s:RETURN
-            {return return_s}
-            / llamada:LLAMADA _ ";" _
-            {return llamada}
-            /asignacion:ASIGNACION
-            {return asignacion}
-            /asignacionArreglo:ASIGNACIONARREGLO
-            {return asignacionArreglo}
-            /switch_s:SWITCH
-            {return switch_s}
-            /while_s:WHILE
-            {return while_s}
-            /for_s:FOR
-            {return for_s}
-            /foreach:FOREACH
-            {return foreach}
-
-BLOQUE = "{" _ sentencias:INSTRUCCIONES* _ "}" 
-            {return NuevoNodo('Bloque', { sentencias }) }
-
-DECLARACION = tipo:TIPO _ id:IDENTIFICADOR _ "=" _ expresion:EXPRESION _ ";" _
+// Declaración De Variables
+DECLARACIONVARIABLE = arreglo:ARREGLO _
+            {return arreglo}
+            /tipo:TIPO _ id:IDENTIFICADOR _ "=" _ expresion:EXPRESION _ ";" _
             {return NuevoNodo('DeclaracionVar', {tipo, id, expresion })}
             / tipo:TIPO _ id:IDENTIFICADOR _ ";" _
             {return NuevoNodo('DeclaracionVar', {tipo, id })}
-            /arreglo:ARREGLO _
-            {return arreglo}
 
-FUNCIONFORRANEA = tipo:(TIPO/ "void") _ id:IDENTIFICADOR _ "(" _ parametros:PARAMETROS? _ ")" _ bloque:BLOQUE
+// Declaración De Funciones
+DECLARACIONFUNCION = tipo:(TIPO/ "void") _ id:IDENTIFICADOR _ "(" _ parametros:PARAMETROS? _ ")" _ bloque:BLOQUE
             { return NuevoNodo('FuncionForanea', { tipo, id, parametros: parametros || [], bloque }) }
 
 PARAMETROS = primerParametro:PARAMETRO restoParametros:("," _ parametro:PARAMETRO { return parametro; })* 
@@ -110,6 +78,7 @@ PARAMETRO = tipo:(TIPO/IDENTIFICADOR) dimensiones:ARREGLODIMENSION? _ id:IDENTIF
 
 ARREGLODIMENSION = ("[" _ "]")*  { return text(); }
 
+// Declaración De Arreglos
 ARREGLO = tipo:TIPO _ "[]" _ id:IDENTIFICADOR _ "=" _ valores:VALORES _ ";" 
             {return NuevoNodo('DeclaracionArreglo1', {tipo, id, valores})}
         /tipo1:TIPO _ "[]" _ id:IDENTIFICADOR _ "=" _ "new" _ tipo2:TIPO _ "[" _ numero:EXPRESION _ "]" _ ";" 
@@ -117,17 +86,39 @@ ARREGLO = tipo:TIPO _ "[]" _ id:IDENTIFICADOR _ "=" _ valores:VALORES _ ";"
         /tipo:TIPO _ "[]" _ id1:IDENTIFICADOR _ "=" _ id2:IDENTIFICADOR _ ";" 
             {return NuevoNodo('DeclaracionArreglo3', {tipo, id1, id2})}
 
+// Asignación De Arreglos
+ASIGNACIONARREGLO = id:IDENTIFICADOR _ "[" _ index:EXPRESION _ "]" _ "=" _ valor:EXPRESION _ ";" _ 
+            {return NuevoNodo('AsignacionArreglo', { id, index, valor })}
+
 VALORES = "{" _ valores:LISTAVALORES _ "}" 
             {return valores}
 
 LISTAVALORES = expresion1:EXPRESION _ valores:("," _ expresion:EXPRESION {return expresion})* 
             {return [expresion1, ...valores]}
 
-IF = _ "if" _ "(" _ condicion:EXPRESION _ ")" _ sentenciasVerdadero:SENTENCIA 
-            sentenciasFalso:(
-            _ "else" _ sentenciasFalso:SENTENCIA 
-            { return sentenciasFalso } )? 
-            { return NuevoNodo('If', { condicion, sentenciasVerdadero, sentenciasFalso }) }
+SENTENCIA =  
+            bloque:BLOQUE
+            {return bloque}
+            /print_s:PRINT
+            {return print_s}
+            / if_1:IF
+            {return if_1}
+            /while_s:WHILE
+            {return while_s}
+            /for_s:FOR
+            {return for_s}
+            /switch_s:SWITCH
+            {return switch_s}
+            /foreach:FOREACH
+            {return foreach}
+            /break_s:BREAK
+            {return break_s}
+            /continue_s:CONTUNUE
+            {return continue_s}
+            /return_s:RETURN
+            {return return_s}
+            /expresion:EXPRESION _ ";" _
+            {return NuevoNodo('SentenciaExpresion', {expresion})}
 
 PRINT = _ ("System.out.println("/"print(") _ expresion:EXPRESIONES _ ")" _ ";" _
         {return NuevoNodo('Print', { expresion })}
@@ -139,28 +130,37 @@ EXPRESIONES = primera:EXPRESION resto:(_ "," _ EXPRESION)*
             return expresiones;
         }
 
-SWITCH = _"switch" _ "(" _ condicion:EXPRESION _ ")" _ "{" _ cases:SWITCHCASE* default1:DEFAULTCASE? _ "}" 
-            {return NuevoNodo('Switch', { condicion, cases, default1 }) }
+BLOQUE = "{" _ sentencias:DECLARACIONES* _ "}" 
+            {return NuevoNodo('Bloque', { sentencias }) }
 
-SWITCHCASE = _ "case" _ valor:EXPRESION _ ":" _ bloquecase:INSTRUCCIONES* 
-            {return { valor, bloquecase } }
+IF = _ "if" _ "(" _ condicion:EXPRESION _ ")" _ sentenciasVerdadero:SENTENCIA 
+            sentenciasFalso:(
+            _ "else" _ sentenciasFalso:SENTENCIA 
+            { return sentenciasFalso } )? 
+            { return NuevoNodo('If', { condicion, sentenciasVerdadero, sentenciasFalso }) }
 
-DEFAULTCASE = _ "default" _ ":" _ sentencias:SENTENCIA* 
-            {return { sentencias } }
-
-WHILE = _ "while" _ "(" _ condicion:EXPRESION _ ")" _ sentencias:BLOQUE 
+WHILE = _ "while" _ "(" _ condicion:EXPRESION _ ")" _ sentencias:SENTENCIA 
             {return NuevoNodo('While', { condicion, sentencias }) }
 
-FOR = _ "for" _ "("_ declaracion:FORINIT _ condicion:EXPRESION _ ";" _ incremento:ASIGNACION _ ")" _ sentencia:SENTENCIA 
+FOR = _ "for" _ "("_ declaracion:FORINIT _ condicion:EXPRESION _ ";" _ incremento:EXPRESION _ ")" _ sentencia:SENTENCIA 
             {return NuevoNodo('For', { declaracion, condicion, incremento, sentencia }) }
+
+FORINIT = declaracion:DECLARACIONVARIABLE 
+            {return declaracion}
+            / expresion:EXPRESION _ ";"
+            {return expresion}
 
 FOREACH = _ "for" _ "(" _ tipo: TIPO _ id:IDENTIFICADOR _ ":" _ arreglo: IDENTIFICADOR _ ")" _ sentencias:SENTENCIA 
             {return NuevoNodo('ForEach', {tipo, id, arreglo, sentencias})}
 
-FORINIT = asignacion:ASIGNACION
-            {return asignacion}
-            /declaracion:DECLARACION 
-            {return declaracion}
+SWITCH = _"switch" _ "(" _ condicion:EXPRESION _ ")" _ "{" _ cases:SWITCHCASE* default1:DEFAULTCASE? _ "}" 
+            {return NuevoNodo('Switch', { condicion, cases, default1 }) }
+
+SWITCHCASE = _ "case" _ valor:EXPRESION _ ":" _ bloquecase:DECLARACIONES* 
+            {return { valor, bloquecase } }
+
+DEFAULTCASE = _ "default" _ ":" _ sentencias:SENTENCIA* 
+            {return { sentencias } }
 
 BREAK = _ "break" _ ";" _ 
             {return NuevoNodo('Break')}
@@ -171,47 +171,22 @@ CONTUNUE = _ "continue" _ ";" _
 RETURN = _ "return" _ expresion:EXPRESION? _ ";" _ 
             {return NuevoNodo('Return', {expresion})}
 
-ASIGNACION = id:IDENTIFICADOR _ "=" _ asignacion:EXPRESION _ ";" _ 
-            { return NuevoNodo('asignacion', { id, asignacion }) }
+EXPRESION = ASIGNACION
 
-            /id:IDENTIFICADOR _ "=" _ asignacion:EXPRESION _
-            { return NuevoNodo('asignacion', { id, asignacion }) }
-
-            /id:IDENTIFICADOR _ operador:("+="/"-=")_ expresion:EXPRESION _ ";" _ 
-            { return NuevoNodo('asignacion', 
-            { id, asignacion: NuevoNodo('OperacionBinaria', 
-            { operador, izquierda: NuevoNodo('ReferenciaVariable', { id }) , derecha: expresion }) }) }
+ASIGNACION = asignado:LLAMADA _ "=" _ asignacion:ASIGNACION _ 
+            { return NuevoNodo('asignacion', { id: asignado.id, asignacion }) }
 
             /id:IDENTIFICADOR _ operador:("+="/"-=")_ expresion:EXPRESION _ 
             { return NuevoNodo('asignacion', 
             { id, asignacion: NuevoNodo('OperacionBinaria', 
             { operador, izquierda: NuevoNodo('ReferenciaVariable', { id }) , derecha: expresion }) }) }
-            
-            / id:IDENTIFICADOR _ operador:("++" / "--") _  ";" _
+
+            / id:IDENTIFICADOR _ operador:("++" / "--")  _
             { return NuevoNodo('asignacion', 
             { id, asignacion: NuevoNodo('OperacionUnaria', 
             { operador, expresion: NuevoNodo('ReferenciaVariable', { id }) }) }) }
+            / LOGICO
 
-            / id:IDENTIFICADOR _ operador:("++" / "--") _ 
-            { return NuevoNodo('asignacion', 
-            { id, asignacion: NuevoNodo('OperacionUnaria', 
-            { operador, expresion: NuevoNodo('ReferenciaVariable', { id }) }) }) }
-
-ASIGNACIONARREGLO = id:IDENTIFICADOR _ "[" _ index:EXPRESION _ "]" _ "=" _ valor:EXPRESION _ ";" _ 
-            {return NuevoNodo('AsignacionArreglo', { id, index, valor })}
-
-EXPRESION = logico:LOGICO
-            {return logico}
-            /booleano:BOOLEANO
-            {return booleano}
-            / agrupacion:AGRUPACION
-            {return agrupacion}
-            / referenciaVariable:REFERENCIAVARIABLE
-            {return referenciaVariable}
-            / caracter:CARACTER
-            {return caracter}
-            / cadena:CADENA
-            {return cadena}
 
 LOGICO = OR
 
@@ -220,7 +195,7 @@ OR = izquierda:AND expansion:(_ operador:("||") _ derecha:AND
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
         const { tipo, derecha } = operacionActual
-        return NuevoNodo('OperacionOR', {izquierda: operacionAnterior, derecha })
+        return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
         },
         izquierda
     )
@@ -231,7 +206,7 @@ AND = izquierda:IGUALDAD expansion:(_ operador:("&&") _ derecha:IGUALDAD
     return expansion.reduce(
         (operacionAnterior, operacionActual) => {
             const { tipo, derecha } = operacionActual
-            return NuevoNodo('OperacionAND', { izquierda: operacionAnterior, derecha })
+            return NuevoNodo('OperacionBinaria', { operador:tipo, izquierda: operacionAnterior, derecha })
             },
             izquierda
         )
@@ -301,17 +276,22 @@ UNARIA = "-" _ expresion:UNARIA
             {return NuevoNodo('IndexArreglo', {id, index})}
         / id:IDENTIFICADOR _ ".join()"
             {return NuevoNodo('JoinArreglo', {id})}
-        / id:IDENTIFICADOR _ posicion:VALORESLENGTH _".length"
+        / id:IDENTIFICADOR _".length"
             {return NuevoNodo('LengthArreglo', {id, posicion})}
         / id:IDENTIFICADOR _ "[" _ index:OTRAEXPRESION _ "]"
             {return NuevoNodo('AccesoArreglo', {id, index})}
-        / LLAMADA
         / OTRAEXPRESION
 
-VALORESLENGTH = ("[" _ posicion:EXPRESION _ "]" 
-            {return posicion})* 
 
-LLAMADA = callee:OTRAEXPRESION _ parametros:("(" argumentos:ARGUMENTOS? ")" { return argumentos })* {
+OTRAEXPRESION = booleano:BOOLEANO
+            {return booleano}
+            / caracter:CARACTER
+            {return caracter}
+            / cadena:CADENA
+            {return cadena}
+            / LLAMADA
+            
+LLAMADA = callee:DATOS _ parametros:("(" argumentos:ARGUMENTOS? ")" { return argumentos })* {
     return parametros.reduce(
         (callee, argumentos) => {
             return NuevoNodo('Llamada', { callee, argumentos: argumentos || [] })
@@ -324,22 +304,13 @@ ARGUMENTOS = argumento:EXPRESION _ argumentos:("," _ expresion:EXPRESION
             { return expresion })* 
             { return [argumento, ...argumentos] }
 
-OTRAEXPRESION = decimal:DECIMAL
-            {return decimal}
-            / entero:ENTERO
+DATOS = entero:ENTERO
             {return entero}
-            / booleano:BOOLEANO
-            {return booleano}
-            / agrupacion:AGRUPACION
+            / decimal:DECIMAL
+            {return decimal}
+            /agrupacion:AGRUPACION
             {return agrupacion}
-            / referenciaVariable:REFERENCIAVARIABLE
-            {return referenciaVariable}
-            / caracter:CARACTER
-            {return caracter}
-            / cadena:CADENA
-            {return cadena}
-            
-
+            /referencia:REFERENCIAVARIABLE
 
 TIPO = "int" 
             {return text()}

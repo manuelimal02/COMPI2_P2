@@ -1,11 +1,11 @@
-export const CadenaEnBytes = (String) => {
-    const Resultado = []
-    let IndexElemento = 0
+export const stringTo1ByteArray = (str) => {
+    const resultado = []
+    let elementIndex = 0
 
-    while (IndexElemento < String.length) {
-        Resultado.push(String.charCodeAt(IndexElemento))
-        IndexElemento++
+    while (elementIndex < str.length) {
+        resultado.push(str.charCodeAt(elementIndex))
+        elementIndex++
     }
-    Resultado.push(0)
-    return Resultado;
+    resultado.push(0)
+    return resultado;
 }

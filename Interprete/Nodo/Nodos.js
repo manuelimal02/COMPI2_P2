@@ -41,6 +41,31 @@ export class Expresion  {
     }
 }
     
+export class SentenciaExpresion extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.expresion Expresion de la sentencia
+    */
+    constructor({ expresion }) {
+        super();
+        
+        /**
+         * Expresion de la sentencia
+         * @type {Expresion}
+        */
+        this.expresion = expresion;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitSentenciaExpresion(this);
+    }
+}
+    
 export class OperacionBinaria extends Expresion {
 
     /**
@@ -1324,4 +1349,4 @@ export class FuncionForanea extends Expresion {
     }
 }
     
-export default { Expresion, OperacionBinaria, OperacionAND, OperacionOR, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }
+export default { Expresion, SentenciaExpresion, OperacionBinaria, OperacionAND, OperacionOR, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }

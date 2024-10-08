@@ -40,6 +40,10 @@ export class OperacionBinariaHandler {
                 return this.validarMenorQue();
             case '<=':
                 return this.validarMenorIgualQue();
+            case '&&':
+                return this.validarAnd();
+            case '||':
+                return this.validarOr();
         }
     }
 
@@ -389,4 +393,21 @@ export class OperacionBinariaHandler {
         }
     }
 
+
+    validarAnd() {
+        if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
+            // boolean && boolean = boolean
+            this.code.and(r.T0, r.T0, r.T1);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
+        }
+    }
+    validarOr() {
+        if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
+            // boolean || boolean = boolean
+            this.code.or(r.T0, r.T0, r.T1);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
+        }
+    }
 }

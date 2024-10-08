@@ -33,6 +33,15 @@ export class Interprete extends BaseVisitor {
     interpretar(nodo) {
         return nodo.accept(this);
     }
+
+    /**
+    * @type {BaseVisitor['visitOperacionBinaria']}
+    */
+    visitSentenciaExpresion(node) {
+        node.expresion.accept(this);
+    }
+
+    
     /**
     * @type {BaseVisitor['visitOperacionBinaria']}
     */
@@ -142,6 +151,7 @@ export class Interprete extends BaseVisitor {
         if (variable == undefined) {
             throw new Error(`La Variable: "${node.id}" No Está Definida.`);
         }
+        
         return variable.valor;
     }
 

@@ -4,6 +4,9 @@
  * @typedef {import('../Nodo/Nodos.js').Expresion} Expresion
 
 
+ * @typedef {import('../Nodo/Nodos.js').SentenciaExpresion} SentenciaExpresion
+
+
  * @typedef {import('../Nodo/Nodos.js').OperacionBinaria} OperacionBinaria
 
 
@@ -136,6 +139,15 @@ export class BaseVisitor {
      */
     visitExpresion(node) {
         throw new Error('Metodo visitExpresion no implementado');
+    }
+    
+
+    /**
+     * @param {SentenciaExpresion} node
+     * @returns {any}
+     */
+    visitSentenciaExpresion(node) {
+        throw new Error('Metodo visitSentenciaExpresion no implementado');
     }
     
 
