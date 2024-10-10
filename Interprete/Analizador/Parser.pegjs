@@ -187,7 +187,6 @@ ASIGNACION = asignado:LLAMADA _ "=" _ asignacion:ASIGNACION _
             { operador, expresion: NuevoNodo('ReferenciaVariable', { id }) }) }) }
             / LOGICO
 
-
 LOGICO = OR
 
 OR = izquierda:AND expansion:(_ operador:("||") _ derecha:AND 
@@ -282,7 +281,6 @@ UNARIA = "-" _ expresion:UNARIA
             {return NuevoNodo('AccesoArreglo', {id, index})}
         / OTRAEXPRESION
 
-
 OTRAEXPRESION = booleano:BOOLEANO
             {return booleano}
             / caracter:CARACTER
@@ -304,10 +302,10 @@ ARGUMENTOS = argumento:EXPRESION _ argumentos:("," _ expresion:EXPRESION
             { return expresion })* 
             { return [argumento, ...argumentos] }
 
-DATOS = entero:ENTERO
-            {return entero}
-            / decimal:DECIMAL
+DATOS =     decimal:DECIMAL
             {return decimal}
+            /entero:ENTERO
+            {return entero}
             /agrupacion:AGRUPACION
             {return agrupacion}
             /referencia:REFERENCIAVARIABLE

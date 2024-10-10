@@ -17,7 +17,6 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitSentenciaExpresion']}
     */
     visitSentenciaExpresion(node) {
-        console.log('ENTRA A SENTENCIA EXPRESION', node);
         node.expresion.accept(this);
         this.code.popObject(r.T0);
     }
@@ -37,23 +36,6 @@ export class Compilador extends BaseVisitor {
         const Resultado = Handler.EjecutarHandler();
         this.code.pushObject(Resultado);
         this.code.comment('Fin-De-Operacion-Binaria');
-    }
-
-    /**
-    * @type {BaseVisitor['visitOperacionAND']}
-    */
-    visitOperacionAND(node) {
-        console.log('ENTRA A AND');
-        return
-    }
-    
-
-    /**
-    * @type {BaseVisitor['visitOperacionOR']}
-    */
-    visitOperacionOR(node) {
-        console.log('ENTRA A OR');
-        return
     }
 
     /**
@@ -95,9 +77,9 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitCadena']}
     */
     visitCadena(node) {
-        this.code.comment(`Cadena: ${node.valor}`);
+        this.code.comment(`Cadena:`);
         this.code.pushConstant({ type: node.tipo, valor: node.valor });
-        this.code.comment(`Fin-Cadena: ${node.valor}`);
+        this.code.comment(`Fin-Cadena`);
     }
 
     /**
@@ -382,14 +364,18 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitParseInt']}
      */ 
     visitParseInt(node) {
-        console.log('ENTRA A PARSE INT', node);
+        node.Argumento.accept(this);
+        this.code.popObject(r.A0);
+        this.code.callBuiltin('parseInt');
+        this.code.push(r.A0); 
+        this.code.pushObject({ type: 'int', length: 4 });
     }
 
     /**
      * @type {BaseVisitor['visitParseInt']}
      */ 
     visitParseFloat(node) {
-        console.log('ENTRA A PARSE FLOAT', node);
+        console.log('ENTRA A PARSE FLOAT');
     }
     
 
@@ -397,9 +383,8 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitToString']}
      */ 
     visitToString(node) {
-        console.log('ENTRA A TO STRING', node);
+        console.log('ENTRA A TO STRING');
     }
-    
 
     /**
      * @type {BaseVisitor['visitToLowerCase']}
@@ -421,7 +406,6 @@ export class Compilador extends BaseVisitor {
         this.code.callBuiltin('toUpperCase');
         this.code.pushObject({ type: 'string', length: 4 });
     }
-    
 
     /**
      * @type {BaseVisitor['visitTypeOf']}

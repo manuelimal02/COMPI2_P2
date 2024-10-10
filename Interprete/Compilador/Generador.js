@@ -260,12 +260,25 @@ export class Generador {
     }
 
     printBoolean(rd = r.A0) {
+        const ContadorLabel = this._labelCounter++
         if (rd !== r.A0) {
             this.push(r.A0)
             this.add(r.A0, rd, r.ZERO)
+        } else {
+            this.add(r.A0, rd, r.ZERO)
         }
-        this.li(r.A7, 1)
+        this.beqz(r.A0, `Imprimir_Cadena_Falso${ContadorLabel}`)
+
+        this.la(r.A0, "true_como_cadena")
+        this.j(`Imprimir_String${ContadorLabel}`)
+
+        this.addLabel(`Imprimir_Cadena_Falso${ContadorLabel}`)
+        this.la(r.A0, "false_como_cadena")
+
+        this.addLabel(`Imprimir_String${ContadorLabel}`)
+        this.li(r.A7, 4)
         this.ecall()
+
         if (rd !== r.A0) {
             this.pop(r.A0)
         }
@@ -317,7 +330,6 @@ export class Generador {
                 break;
             case 'boolean':
                 const value = object.valor ? 1 : 0;
-                console.log(value)
                 this.li(r.T0, value);
                 this.push(r.T0);
                 length = 4;
@@ -384,7 +396,6 @@ export class Generador {
 
     tagObject(id) {
         this.objectStack[this.objectStack.length - 1].id = id;
-        console.log("tag", this.objectStack)
     }
 
     getObject(id) {
@@ -408,6 +419,8 @@ export class Generador {
             this.ret()
         })
         return `.data
+                    true_como_cadena: .string "true"
+                    false_como_cadena: .string "false"
                 heap:
                     .text
                     # inicializando El Heap Pointer

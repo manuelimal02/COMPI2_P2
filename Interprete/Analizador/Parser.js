@@ -464,8 +464,8 @@ return expansion.reduce(
 };
   var peg$f78 = function(argumento, expresion) { return expresion };
   var peg$f79 = function(argumento, argumentos) { return [argumento, ...argumentos] };
-  var peg$f80 = function(entero) {return entero};
-  var peg$f81 = function(decimal) {return decimal};
+  var peg$f80 = function(decimal) {return decimal};
+  var peg$f81 = function(entero) {return entero};
   var peg$f82 = function(agrupacion) {return agrupacion};
   var peg$f83 = function() {return text()};
   var peg$f84 = function() {return text()};
@@ -3677,7 +3677,7 @@ return expansion.reduce(
     var s0, s1;
 
     s0 = peg$currPos;
-    s1 = peg$parseENTERO();
+    s1 = peg$parseDECIMAL();
     if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
       s1 = peg$f80(s1);
@@ -3685,7 +3685,7 @@ return expansion.reduce(
     s0 = s1;
     if (s0 === peg$FAILED) {
       s0 = peg$currPos;
-      s1 = peg$parseDECIMAL();
+      s1 = peg$parseENTERO();
       if (s1 !== peg$FAILED) {
         peg$savedPos = s0;
         s1 = peg$f81(s1);
