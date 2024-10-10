@@ -308,36 +308,36 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitFor']}
     */
 
-visitFor(node) {
-    this.code.comment('Inicio-del-For');
-    node.declaracion.accept(this);
-    
-    const startFor = this.code.getLabel();
-    const endFor = this.code.getLabel();
-    const incrementFor = this.code.getLabel();
+    visitFor(node) {
+        this.code.comment('Inicio-del-For');
+        node.declaracion.accept(this);
 
-    this.PilaContinues.push({ type: 'for', label: incrementFor });
-    this.PilaBreaks.push({ type: 'for', label: endFor });
+        const startFor = this.code.getLabel();
+        const endFor = this.code.getLabel();
+        const incrementFor = this.code.getLabel();
 
-    this.code.addLabel(startFor);
+        this.PilaContinues.push({ type: 'for', label: incrementFor });
+        this.PilaBreaks.push({ type: 'for', label: endFor });
 
-    node.condicion.accept(this);
-    this.code.popObject(r.T0);
-    this.code.beq(r.T0, r.ZERO, endFor);
+        this.code.addLabel(startFor);
 
-    node.sentencia.accept(this);
+        node.condicion.accept(this);
+        this.code.popObject(r.T0);
+        this.code.beq(r.T0, r.ZERO, endFor);
 
-    this.code.addLabel(incrementFor);
-    node.incremento.accept(this);
-    this.code.j(startFor);
+        node.sentencia.accept(this);
 
-    this.code.addLabel(endFor);
+        this.code.addLabel(incrementFor);
+        node.incremento.accept(this);
+        this.code.j(startFor);
 
-    this.PilaContinues.pop();
-    this.PilaBreaks.pop();
+        this.code.addLabel(endFor);
 
-    this.code.comment('Fin-del-For');
-}
+        this.PilaContinues.pop();
+        this.PilaBreaks.pop();
+
+        this.code.comment('Fin-del-For');
+    }
 
     /**
     * @type {BaseVisitor['visitBreak']}
@@ -382,13 +382,46 @@ visitFor(node) {
      * @type {BaseVisitor['visitParseInt']}
      */ 
     visitParseInt(node) {
-        node.Argumento.accept(this);
-        const valor = this.code.popObject(r.T0);
-        if (valor.type === 'string') {
-            this.code.pushConstant({ type: 'int', valor: parseInt(valor.valor)});
-        } 
-        return
+        console.log('ENTRA A PARSE INT', node);
     }
+
+    /**
+     * @type {BaseVisitor['visitParseInt']}
+     */ 
+    visitParseFloat(node) {
+        console.log('ENTRA A PARSE FLOAT', node);
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitToString']}
+     */ 
+    visitToString(node) {
+        console.log('ENTRA A TO STRING', node);
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitToLowerCase']}
+     */ 
+    visitToLowerCase(node) {
+        node.Argumento.accept(this);
+        this.code.popObject(r.T0);
+        this.code.callBuiltin('toLowerCase');
+        this.code.pushObject({ type: 'string', length: 4 });
+    }
+    
+
+    /**
+     * @type {BaseVisitor['visitToUpperCase']}
+     */ 
+    visitToUpperCase(node) {
+        node.Argumento.accept(this);
+        this.code.popObject(r.T0);
+        this.code.callBuiltin('toUpperCase');
+        this.code.pushObject({ type: 'string', length: 4 });
+    }
+    
 
     /**
      * @type {BaseVisitor['visitTypeOf']}
