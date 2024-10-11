@@ -391,9 +391,7 @@ export class Compilador extends BaseVisitor {
      */ 
     visitToLowerCase(node) {
         node.Argumento.accept(this);
-        this.code.popObject(r.T0);
         this.code.callBuiltin('toLowerCase');
-        this.code.pushObject({ type: 'string', length: 4 });
     }
     
 
@@ -402,9 +400,7 @@ export class Compilador extends BaseVisitor {
      */ 
     visitToUpperCase(node) {
         node.Argumento.accept(this);
-        this.code.popObject(r.T0);
         this.code.callBuiltin('toUpperCase');
-        this.code.pushObject({ type: 'string', length: 4 });
     }
 
     /**
