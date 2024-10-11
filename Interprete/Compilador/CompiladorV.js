@@ -484,6 +484,25 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitAccesoArreglo']}
      */
     visitAccesoArreglo(node) {
+        this.code.comment('Inicio-Acceso-Arreglo');
+        node.index.accept(this);
+        this.code.popObject(r.T0);
+
+        const [offset, arrayObject] = this.code.getObject(node.id);
+
+        this.code.la(r.T5, node.id);
+        this.code.li(r.T1,4);   
+
+        this.code.mul(r.T0, r.T0, r.T1);
+
+        this.code.add(r.T2, r.T5, r.T0);
+
+        this.code.lw(r.T3,r.T2,0);
+
+        this.code.push(r.T3);
+
+        this.code.pushObject({ ...arrayObject, id: undefined });
+        this.code.comment('Fin-Acceso-Arreglo');
     
     }
 
