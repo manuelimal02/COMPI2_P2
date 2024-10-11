@@ -428,6 +428,20 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitDeclaracionArreglo1']}
      */ 
     visitDeclaracionArreglo1(node) {
+        this.code.comment('Inicio-Declaracion-Arreglo');
+        this.code.la(r.T5, node.id);
+
+        const valores = node.valores;
+
+        valores.forEach((valor, index) => {
+            valor.accept(this);
+            this.code.popObject(r.T0);
+            this.code.sw(r.T0, r.T5, index * 4);
+        });
+
+        this.code.NuevoArreglo(node.id, node.tipo, valores.length);
+        this.code.pushObject({ type: node.tipo, length: valores.length*4});
+        this.code.tagObject(node.id);
     
     }
 

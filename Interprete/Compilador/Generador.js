@@ -29,6 +29,7 @@ export class Generador {
         this.depth = 0
         this._usedBuiltins = new Set()
         this._labelCounter = 0;
+        this.ArregloConValor = [];
     }
 
     getLabel() {
@@ -227,6 +228,11 @@ export class Generador {
 
     //--------------------------------------------
 
+    // Arreglo
+    NuevoArreglo(id, tipo, tamano) {
+        this.ArregloConValor.push({ id, espaciomemoria:4*tamano });
+    }
+
     callBuiltin(builtinName) {
         if (!Constructores[builtinName]) {
             throw new Error(`Constructor ${builtinName} No Encontrado.`)
@@ -418,7 +424,7 @@ export class Generador {
             Constructores[builtinName](this)
             this.ret()
         })
-        return `.data
+        return `.data\n${this.ArregloConValor.map((array, index) => `${array.id}: .space ${array.espaciomemoria}`).join('\n')}
                     true_como_cadena: .string "true"
                     false_como_cadena: .string "false"
                 heap:
