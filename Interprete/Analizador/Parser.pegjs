@@ -87,7 +87,7 @@ ARREGLO = tipo:TIPO _ "[]" _ id:IDENTIFICADOR _ "=" _ valores:VALORES _ ";"
             {return NuevoNodo('DeclaracionArreglo3', {tipo, id1, id2})}
 
 // Asignación De Arreglos
-ASIGNACIONARREGLO = id:IDENTIFICADOR _ "[" _ index:EXPRESION _ "]" _ "=" _ valor:EXPRESION _ ";" _ 
+ASIGNACIONARREGLO = id:IDENTIFICADOR _ "[" _ index:EXPRESION _ "]" _ "=" _ valor:EXPRESION _
             {return NuevoNodo('AsignacionArreglo', { id, index, valor })}
 
 VALORES = "{" _ valores:LISTAVALORES _ "}" 
@@ -185,6 +185,7 @@ ASIGNACION = asignado:LLAMADA _ "=" _ asignacion:ASIGNACION _
             { return NuevoNodo('asignacion', 
             { id, asignacion: NuevoNodo('OperacionUnaria', 
             { operador, expresion: NuevoNodo('ReferenciaVariable', { id }) }) }) }
+            / ASIGNACIONARREGLO
             / LOGICO
 
 LOGICO = OR

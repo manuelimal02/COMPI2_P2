@@ -510,6 +510,30 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitAsignacionArreglo']}
      */
     visitAsignacionArreglo(node) {
+        this.code.comment('Inicio-Asignacion-Arreglo');
+
+        node.valor.accept(this);
+        node.index.accept(this);
+
+        const datoobJECT = this.code.popObject(r.T0)
+        const indexObject = this.code.popObject(r.T1)
+        const [offset, variableO] = this.code.getObject(node.id)
+
+        this.code.la(r.T5, node.id)
+
+        this.code.li(r.T2, 4)
+
+        this.code.mul(r.T0, r.T0, r.T2)
+
+        this.code.add(r.T3, r.T5, r.T0)
+
+        this.code.sw(r.T1, r.T3)
+
+        this.code.push(r.T1)
+
+        this.code.pushObject(datoobJECT)
+
+        this.code.comment('Fin-Asignacion-Variable');
     
     }
 
