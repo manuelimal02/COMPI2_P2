@@ -65,6 +65,7 @@ export class Compilador extends BaseVisitor {
         this.code.comment(`Entero: ${node.valor}`);
         this.code.pushConstant({ type: node.tipo, valor: node.valor });
         this.code.comment(`Fin-Entero: ${node.valor}`);
+        return node.valor;
     }
 
     /**
@@ -442,14 +443,54 @@ export class Compilador extends BaseVisitor {
         this.code.NuevoArreglo(node.id, node.tipo, valores.length);
         this.code.pushObject({ type: node.tipo, length: valores.length*4});
         this.code.tagObject(node.id);
-    
+        
+        this.code.comment('Fin-Declaracion-Arreglo');
     }
 
     /**
      * @type {BaseVisitor['visitDeclaracionArreglo2']}
      */ 
     visitDeclaracionArreglo2(node) {
-    
+
+        this.code.comment('Inicio-Declaracion-Arreglo');
+
+        const nombre = node.id;
+        const tipo = node.tipo1;
+        const tamano = node.numero.accept (this);
+        console.log('TAMANO', tamano);  
+
+        this.code.NuevoArreglo(nombre, tipo, tamano);
+
+        this.code.la(r.T5, nombre);
+
+        let ValorPorDefecto;
+        switch (tipo) {
+            case 'int':
+                ValorPorDefecto = 0;
+                break;
+            case 'float':
+                ValorPorDefecto = 0.0;
+                break;
+            case 'boolean':
+                ValorPorDefecto = false;
+                break;
+            case 'string':
+                ValorPorDefecto = "";
+                break;
+            case 'char':
+                ValorPorDefecto = '';
+                break;
+        }
+
+        this.code.li(r.T0, ValorPorDefecto);
+        for (let i = 0; i < tamano; i++) {
+            this.code.sw(r.T0, r.T5, i * 4);
+        }
+
+        this.code.pushObject({ type: tipo, length: tamano * 4 });
+        this.code.tagObject(nombre);
+
+        this.code.comment('Fin-Declaracion-Arreglo');
     }
 
     /**
