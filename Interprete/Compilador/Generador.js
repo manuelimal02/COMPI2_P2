@@ -1,5 +1,6 @@
 import { Registros as r } from "./Registros.js";
 import { stringTo1ByteArray } from "./Cadena.js";
+import { numberToF32 } from "./Decimal.js";
 import { Constructores } from "./Contructores.js";
 
 class Instruction {
@@ -74,6 +75,14 @@ export class Generador {
         this.instrucciones.push(new Instruction('snez', rd, rs1))
     }
 
+    and(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('and', rd, rs1, rs2))
+    }
+
+    or(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('or', rd, rs1, rs2))
+    }
+
     xor(rd, rs1, rs2) {
         this.instrucciones.push(new Instruction('xor', rd, rs1, rs2))
     }
@@ -117,11 +126,6 @@ export class Generador {
         this.instrucciones.push(new Instruction('la', rd, label))
     }
 
-    push(rd = r.T0) {
-        this.addi(r.SP, r.SP, -4) 
-        this.sw(rd, r.SP)
-    }
-
     rem(rd, rs1, rs2) {
         this.instrucciones.push(new Instruction('rem', rd, rs1, rs2))
     }
@@ -130,13 +134,65 @@ export class Generador {
         this.instrucciones.push(new Instruction('mv', rd, rs))
     }
 
+    ecall() {
+        this.instrucciones.push(new Instruction('ecall'))
+    }
+
+    push(rd = r.T0) {
+        this.addi(r.SP, r.SP, -4) 
+        this.sw(rd, r.SP)
+    }
+
     pop(rd = r.T0) {
         this.lw(rd, r.SP)
         this.addi(r.SP, r.SP, 4)
     }
 
-    ecall() {
-        this.instrucciones.push(new Instruction('ecall'))
+    // FLOANTES
+    pushFloat(rd = r.FT0) {
+        this.addi(r.SP, r.SP, -4)
+        this.fsw(rd, r.SP)
+    }
+
+    popFloat(rd = r.FT0) {
+        this.flw(rd, r.SP)
+        this.addi(r.SP, r.SP, 4)
+    }
+
+    fadd(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('fadd.s', rd, rs1, rs2))
+    }
+
+    fsub(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('fsub.s', rd, rs1, rs2))
+    }
+
+    fmul(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('fmul.s', rd, rs1, rs2))
+    }
+
+    fdiv(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('fdiv.s', rd, rs1, rs2))
+    }
+
+    fli(rd, inmediato) {
+        this.instrucciones.push(new Instruction('fli.s', rd, inmediato))
+    }
+
+    fmv(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.s', rd, rs1))
+    }
+
+    flw(rd, rs1, inmediato = 0) {
+        this.instrucciones.push(new Instruction('flw', rd, `${inmediato}(${rs1})`))
+    }
+
+    fsw(rs1, rs2, inmediato = 0) {
+        this.instrucciones.push(new Instruction('fsw', rs1, `${inmediato}(${rs2})`))
+    }
+
+    fcvtsw(rd, rs1) {
+        this.instrucciones.push(new Instruction('fcvt.s.w', rd, rs1))
     }
 
     //--------------------------------------------
@@ -253,6 +309,11 @@ export class Generador {
         }
     }
 
+    printFloat() {
+        this.li(r.A7, 2)
+        this.ecall()
+    }
+
     printString(rd = r.A0) {
         if (rd !== r.A0) {
             this.push(r.A0)
@@ -290,14 +351,6 @@ export class Generador {
         }
     }
 
-    and(rd, rs1, rs2) {
-        this.instrucciones.push(new Instruction('and', rd, rs1, rs2))
-    }
-
-    or(rd, rs1, rs2) {
-        this.instrucciones.push(new Instruction('or', rd, rs1, rs2))
-    }
-
     printChar(rd = r.A0) {
         if (rd !== r.A0) {
             this.mv(r.A0, rd)
@@ -322,6 +375,12 @@ export class Generador {
             case 'int':
                 this.li(r.T0, object.valor);
                 this.push()
+                length = 4;
+                break;
+            case 'float':
+                const float32 = numberToF32(object.valor);
+                this.li(r.T0, float32);
+                this.push(r.T0);
                 length = 4;
                 break;
             case 'string':
@@ -366,6 +425,9 @@ export class Generador {
         switch (object.type) {
             case 'int':
                 this.pop(rd);
+                break;
+            case 'float':
+                this.popFloat(rd);
                 break;
             case 'string':
                 this.pop(rd);
@@ -413,6 +475,10 @@ export class Generador {
             byteOffset += this.objectStack[i].length;
         }
         throw new Error(`Variable ${id} Not found`);
+    }
+
+    getTopObject() {
+        return this.objectStack[this.objectStack.length - 1];
     }
 
     toString() {

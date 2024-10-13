@@ -1,5 +1,6 @@
 import { BaseVisitor } from "../Visitor/Visitor.js";
 import { Registros as r } from "./Registros.js";
+import { RegistrosFlotantes as f } from "./Registros.js";
 import { Generador } from "./Generador.js";
 import { OperacionBinariaHandler } from "./Binaria.js";
 import { OperacionUnariaHandler } from "./Unaria.js";
@@ -29,8 +30,12 @@ export class Compilador extends BaseVisitor {
         node.izquierda.accept(this);
         node.derecha.accept(this);
 
-        const derecha = this.code.popObject(r.T0);
-        const izquierda = this.code.popObject(r.T1); 
+
+
+        const EsDerechaFloat = this.code.getTopObject().type === 'float';
+        const derecha = this.code.popObject(EsDerechaFloat ? f.FT0 : r.T0);
+        const EsIzquierdaFloat = this.code.getTopObject().type === 'float';
+        const izquierda = this.code.popObject(EsIzquierdaFloat ? f.FT1 : r.T1);
 
         const Handler = new OperacionBinariaHandler(node.operador, izquierda, derecha, this.code);
         const Resultado = Handler.EjecutarHandler();
@@ -72,6 +77,9 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitDecimal']}
     */
     visitDecimal(node) {
+        this.code.comment(`Decimal: ${node.valor}`);
+        this.code.pushConstant({ type: node.tipo, valor: node.valor });
+        this.code.comment(`Fin-Decimal: ${node.valor}`);
     }
 
     /**
@@ -109,7 +117,6 @@ export class Compilador extends BaseVisitor {
         if (node.expresion) {
             node.expresion.accept(this);
         } else {
-            console.log('ENTRA A DECLARACION VAR por defecto', node);
             switch (node.tipo) {
                 case 'int':
                     this.code.pushObject({ type: 'int', valor: 0 });
@@ -153,11 +160,13 @@ export class Compilador extends BaseVisitor {
             'int': () => this.code.printInt(),
             'string': () => this.code.printString(),
             'boolean': () => this.code.printBoolean(),
-            'char': () => this.code.printChar()
+            'char': () => this.code.printChar(),
+            'float': () => this.code.printFloat()
         }
         for (let i = 0; i < node.expresion.length; i++) {
             node.expresion[i].accept(this);
-            const object = this.code.popObject(r.A0);
+            const isFloat = this.code.getTopObject().type === 'float';
+            const object = this.code.popObject(isFloat ? f.FA0 : r.A0);
             tipoPrint[object.type]();
         }
         this.code.printNewLine();
@@ -451,13 +460,11 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitDeclaracionArreglo2']}
      */ 
     visitDeclaracionArreglo2(node) {
-
         this.code.comment('Inicio-Declaracion-Arreglo');
 
         const nombre = node.id;
         const tipo = node.tipo1;
-        const tamano = node.numero.accept (this);
-        console.log('TAMANO', tamano);  
+        const tamano = node.numero.accept(this);
 
         this.code.NuevoArreglo(nombre, tipo, tamano);
 
