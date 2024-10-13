@@ -1,4 +1,5 @@
 import { Registros as r } from "./Registros.js";
+import { RegistrosFlotantes as f } from "./Registros.js";
 export class OperacionUnariaHandler {
     /**
      * @param {string} operador
@@ -6,13 +7,15 @@ export class OperacionUnariaHandler {
      * @param {Generador} code
      */
 
-    constructor(operador, izquierda, code) {
+    constructor(operador, izquierda, izquierdaFlotante, code) {
         this.operador = operador;
         this.izquierda = izquierda;
+        this.izquierdaFlotante = izquierdaFlotante;
         this.code = code;
     }
 
     EjecutarHandler() {
+        if (!this.izquierdaFlotante) this.code.fcvtsw(f.FT1, r.T1);
         switch (this.operador) {
             case '-':
                 if (this.izquierda.type === 'int') {
@@ -23,6 +26,9 @@ export class OperacionUnariaHandler {
                     return { type: 'int', length: 4 }
                 }else if (this.izquierda.type === 'float'){
                     // -float = float
+                    this.code.fneg(f.FT0, f.FT1);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 }
                 }
             case '++':
                 if (this.izquierda.type === 'int') {

@@ -30,14 +30,12 @@ export class Compilador extends BaseVisitor {
         node.izquierda.accept(this);
         node.derecha.accept(this);
 
-
-
         const EsDerechaFloat = this.code.getTopObject().type === 'float';
         const derecha = this.code.popObject(EsDerechaFloat ? f.FT0 : r.T0);
         const EsIzquierdaFloat = this.code.getTopObject().type === 'float';
         const izquierda = this.code.popObject(EsIzquierdaFloat ? f.FT1 : r.T1);
 
-        const Handler = new OperacionBinariaHandler(node.operador, izquierda, derecha, this.code);
+        const Handler = new OperacionBinariaHandler(node.operador, izquierda, derecha, EsIzquierdaFloat, EsDerechaFloat,this.code);
         const Resultado = Handler.EjecutarHandler();
         this.code.pushObject(Resultado);
         this.code.comment('Fin-De-Operacion-Binaria');
@@ -49,8 +47,9 @@ export class Compilador extends BaseVisitor {
     visitOperacionUnaria(node) {
         this.code.comment(`Operacion-Unaria: ${node.operador}`);
         node.expresion.accept(this);
-        const izquierda = this.code.popObject(r.T0);
-        const Handler = new OperacionUnariaHandler(node.operador, izquierda, this.code);
+        const EsIzquierdaFloat = this.code.getTopObject().type === 'float';
+        const izquierda = this.code.popObject(EsIzquierdaFloat ? f.FT1 : r.T1);
+        const Handler = new OperacionUnariaHandler(node.operador, izquierda, EsIzquierdaFloat, this.code);
         const Resultado = Handler.EjecutarHandler();
         this.code.pushObject(Resultado);
         this.code.comment(`Fin-Operacion-Unaria`);

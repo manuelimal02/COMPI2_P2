@@ -1,17 +1,22 @@
 import { Registros as r } from "./Registros.js";
+import { RegistrosFlotantes as f } from "./Registros.js";
 import { Generador } from "./Generador.js";
 export class OperacionBinariaHandler {
     /**
      * @param {string} operador
      * @param {any} izquierda
      * @param {any} derecha
+     * @param {any} izquierdaFlotante
+     * @param {any} derechaFlotante
      * @param {Generador} code
      */
 
-    constructor(operador, izquierda, derecha, code) {
+    constructor(operador, izquierda, derecha, izquierdaFlotante, derechaFlotante,code) {
         this.operador = operador;
         this.izquierda = izquierda;
         this.derecha = derecha;
+        this.izquierdaFlotante = izquierdaFlotante;
+        this.derechaFlotante = derechaFlotante;
         this.code = code;
     }
     EjecutarHandler() {
@@ -47,7 +52,13 @@ export class OperacionBinariaHandler {
         }
     }
 
+    validarFlotantes() {
+        if (!this.izquierdaFlotante) this.code.fcvtsw(f.FT1, r.T1);
+        if (!this.derechaFlotante) this.code.fcvtsw(f.FT0, r.T0);
+    }
+
     validarSuma() {
+        this.validarFlotantes();
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int + int = int
@@ -58,17 +69,23 @@ export class OperacionBinariaHandler {
                     
                 //int + float = float
                 case 'float':
-                    //suma
+                    this.code.fadd(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 //float + int = float
                 case 'int':
-                    //suma
+                    this.code.fadd(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
                 //float + float = float
                 case 'float':
-                    //suma
+                    this.code.fadd(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
                 
             }
         }
@@ -82,6 +99,7 @@ export class OperacionBinariaHandler {
     }
 
     validarResta() {
+        this.validarFlotantes();
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int - int = int
@@ -92,22 +110,29 @@ export class OperacionBinariaHandler {
                     
                 //int - float = float
                 case 'float':
-                    //resta
+                    this.code.fsub(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float - int = float
                 case 'int':
-                    //resta
+                    this.code.fsub(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
                 //float - float = float
                 case 'float':
-                    //resta
+                    this.code.fsub(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
     }
 
     validarMultiplicacion() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 //int * int = int
@@ -118,22 +143,29 @@ export class OperacionBinariaHandler {
                     
                 //int * float = float
                 case 'float':
-                    //multi
+                    this.code.fmul(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float * int = float
                 case 'int':
-                    //multi
+                    this.code.fmul(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
                 //float * float = float
                 case 'float':
-                    //multi
+                    this.code.fmul(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
     }
 
     validarDivision() {
+        this.validarFlotantes();
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int / int = int
@@ -144,17 +176,23 @@ export class OperacionBinariaHandler {
                     
                 //int / float = float
                 case 'float':
-                    //div
+                    this.code.fdiv(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float / int = float
                 case 'int':
-                    //div
+                    this.code.fdiv(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
                 //float / float = float
                 case 'float':
-                    //div
+                    this.code.fdiv(f.FT0, f.FT1, f.FT0);
+                    this.code.pushFloat(f.FT0);
+                    return { type: 'float', length: 4 };
             }
         }
     }
@@ -168,28 +206,34 @@ export class OperacionBinariaHandler {
     }
 
     validarIgualdad() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int == int = boolean
                 case 'int':
-                // int == float = boolean
                 this.code.xor(r.T0, r.T1, r.T0);
                 this.code.seqz(r.T0, r.T0);
                 this.code.push(r.T0);
                 return { type: 'boolean', length: 4 };
+                // int == float = boolean
                 case 'float':
-                    //Igual
+                    this.code.feq(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float == int = boolean
                 case 'int':
+                    this.code.feq(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float == float = boolean
-                    //Igual
                 case 'float':
-                    //Igual
+                    this.code.feq(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
@@ -213,8 +257,8 @@ export class OperacionBinariaHandler {
     }
 
     validarDesigualdad() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int != int = boolean
                 case 'int':
@@ -222,20 +266,28 @@ export class OperacionBinariaHandler {
                     this.code.snez(r.T0, r.T0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
-
                 // int != float = boolean
                 case 'float':
-                    //Diferente
+                    this.code.feq(r.T0, f.FT1, f.FT0);
+                    this.code.xori(r.T0, r.T0, 1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float != int = boolean
                 case 'int':
+                    this.code.feq(r.T0, f.FT1, f.FT0);
+                    this.code.xori(r.T0, r.T0, 1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float != float = boolean
-                    //Diferente
                 case 'float':
-                    //Diferente
+                    this.code.feq(r.T0, f.FT1, f.FT0);
+                    this.code.xori(r.T0, r.T0, 1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
@@ -259,28 +311,33 @@ export class OperacionBinariaHandler {
     }
 
     validarMayorQue() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int > int = boolean
                 case 'int':
                     this.code.slt(r.T0, r.T0, r.T1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
-
                 // int > float = boolean
                 case 'float':
-                    //Mayor
+                    this.code.flt(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float > int = boolean
                 case 'int':
+                    this.code.flt(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float > float = boolean
-                    //Mayor
                 case 'float':
-                    //Mayor
+                    this.code.flt(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
@@ -292,8 +349,8 @@ export class OperacionBinariaHandler {
     }
 
     validarMayorIgualQue() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int >= int = boolean
                 case 'int':
@@ -301,20 +358,25 @@ export class OperacionBinariaHandler {
                     this.code.xori(r.T0, r.T0, 1);    
                     this.code.push(r.T0);  
                     return { type: 'boolean', length: 4 };
-
                 // int >= float = boolean
                 case 'float':
-                    //Mayor Igual
+                    this.code.fle(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float >= int = boolean
                 case 'int':
+                    this.code.fle(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float >= float = boolean
-                    //Mayor Igual
                 case 'float':
-                    //Mayor Igual
+                    this.code.fle(r.T0, f.FT0, f.FT1);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
@@ -326,28 +388,33 @@ export class OperacionBinariaHandler {
     }
 
     validarMenorQue() {
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int < int = boolean
                 case 'int':
                     this.code.slt(r.T0, r.T1, r.T0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
-
                 // int < float = boolean
                 case 'float':
-                    //Menor
+                    this.code.flt(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float < int = boolean
                 case 'int':
+                    this.code.flt(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float < float = boolean
-                    //Menor
                 case 'float':
-                    //Menor
+                    this.code.flt(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
@@ -359,8 +426,8 @@ export class OperacionBinariaHandler {
     }
 
     validarMenorIgualQue(){
+        this.validarFlotantes();
         if(this.izquierda.type === 'int') {
-            
             switch(this.derecha.type) {
                 // int <= int = boolean
                 case 'int':
@@ -368,20 +435,25 @@ export class OperacionBinariaHandler {
                     this.code.xori(r.T0, r.T0, 1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
-
                 // int <= float = boolean
                 case 'float':
-                    //Menor Igual
+                    this.code.fle(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float <= int = boolean
                 case 'int':
+                    this.code.fle(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 // float <= float = boolean
-                    //Menor Igual
                 case 'float':
-                    //Menor Igual
+                    this.code.fle(r.T0, f.FT1, f.FT0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
@@ -393,7 +465,6 @@ export class OperacionBinariaHandler {
         }
     }
 
-
     validarAnd() {
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean && boolean = boolean
@@ -402,6 +473,8 @@ export class OperacionBinariaHandler {
             return { type: 'boolean', length: 4 };
         }
     }
+
+
     validarOr() {
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean || boolean = boolean

@@ -179,9 +179,10 @@ export class Generador {
         this.instrucciones.push(new Instruction('fli.s', rd, inmediato))
     }
 
-    fmv(rd, rs1) {
-        this.instrucciones.push(new Instruction('fmv.s', rd, rs1))
+    fmv(rd, rs) {
+        this.instrucciones.push(new Instruction('fmv.w.x', rd, rs))
     }
+
 
     flw(rd, rs1, inmediato = 0) {
         this.instrucciones.push(new Instruction('flw', rd, `${inmediato}(${rs1})`))
@@ -193,6 +194,22 @@ export class Generador {
 
     fcvtsw(rd, rs1) {
         this.instrucciones.push(new Instruction('fcvt.s.w', rd, rs1))
+    }
+
+    feq(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('feq.s', rd, rs1, rs2))
+    }
+
+    fle(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('fle.s', rd, rs1, rs2));
+    }
+
+    flt(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('flt.s', rd, rs1, rs2))
+    }
+
+    fneg(rd, rs) {
+        this.instrucciones.push(new Instruction('fneg.s', rd, rs))
     }
 
     //--------------------------------------------
