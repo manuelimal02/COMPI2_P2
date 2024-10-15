@@ -10,8 +10,8 @@ export class Compilador extends BaseVisitor {
     constructor() {
         super();
         this.code = new Generador();
-        this.PilaBreaks = [];
-        this.PilaContinues = [];
+        this.ContinueLabel = null;
+        this.BreakLabel = null;
     }
 
     /**
@@ -236,9 +236,12 @@ export class Compilador extends BaseVisitor {
         this.code.comment('Inicio-de-While');
 
         const startWhile = this.code.getLabel();
-        this.PilaContinues.push({ type: 'while', label: startWhile });
+        const prevContinueLabel = this.ContinueLabel;
+        this.ContinueLabel = startWhile;
+
         const endWhile = this.code.getLabel();
-        this.PilaBreaks.push({ type: 'while', label: endWhile });
+        const prevBreakLabel = this.BreakLabel;
+        this.BreakLabel = endWhile;
 
         this.code.addLabel(startWhile);
         this.code.comment('Condicion-Del-While');
@@ -253,10 +256,34 @@ export class Compilador extends BaseVisitor {
 
         this.code.addLabel(endWhile);
 
-        this.PilaContinues.pop();
-        this.PilaBreaks.pop();
+        this.ContinueLabel = prevContinueLabel;
+        this.BreakLabel = prevBreakLabel;
         this.code.comment('Fin-Del-While');
     }
+
+    /*
+    const startWhileLabel = this.code.getLabel();
+    const prevContinueLabel = this.continueLabel;
+    this.continueLabel = startWhileLabel;
+
+    const endWhileLabel = this.code.getLabel();
+    const prevBreakLabel = this.breakLabel;
+    this.breakLabel = endWhileLabel;
+
+    this.code.addLabel(startWhileLabel);
+    this.code.comment('Condicion');
+    node.cond.accept(this);
+    this.code.popObject(r.T0);
+    this.code.comment('Fin de condicion');
+    this.code.beq(r.T0, r.ZERO, endWhileLabel);
+    this.code.comment('Cuerpo del while');
+    node.instrucciones.accept(this);
+    this.code.j(startWhileLabel);
+    this.code.addLabel(endWhileLabel);
+
+    this.continueLabel = prevContinueLabel;
+    this.breakLabel = prevBreakLabel;
+    */
 
     /**
     * @type {BaseVisitor['visitSwitch']}
@@ -301,31 +328,50 @@ export class Compilador extends BaseVisitor {
 
     visitFor(node) {
         this.code.comment('Inicio-del-For');
-        node.declaracion.accept(this);
 
         const startFor = this.code.getLabel();
-        const endFor = this.code.getLabel();
-        const incrementFor = this.code.getLabel();
 
-        this.PilaContinues.push({ type: 'for', label: incrementFor });
-        this.PilaBreaks.push({ type: 'for', label: endFor });
+        const endFor = this.code.getLabel();
+        const prevBreakLabel = this.BreakLabel;
+        this.BreakLabel = endFor;
+
+        const incrementFor = this.code.getLabel();
+        const prevContinueLabel = this.ContinueLabel;
+        this.ContinueLabel = incrementFor;
+
+        this.code.newScope();
+
+        this.code.comment('Inicio-Declaracion/Asignacion-For');
+        node.declaracion.accept(this);
+        this.code.comment('Fin-Declaracion/Asignacion-For');
 
         this.code.addLabel(startFor);
-
+        this.code.comment('Condicion-For');
         node.condicion.accept(this);
         this.code.popObject(r.T0);
+        this.code.comment('Fin-Condicion-For');
         this.code.beq(r.T0, r.ZERO, endFor);
 
+        this.code.comment('Cuerpo-For');
         node.sentencia.accept(this);
+        this.code.comment('Fin-Cuerpo-For');
 
         this.code.addLabel(incrementFor);
+        this.code.comment('Inicio-Incremento-For');
         node.incremento.accept(this);
+        this.code.comment('Inicio-Incremento-For');
+        this.code.popObject(r.T0);
         this.code.j(startFor);
 
         this.code.addLabel(endFor);
 
-        this.PilaContinues.pop();
-        this.PilaBreaks.pop();
+        const bytesToRemove = this.code.endScope();
+        if (bytesToRemove > 0) {
+            this.code.addi(r.SP, r.SP, bytesToRemove);
+        }
+
+        this.ContinueLabel = prevContinueLabel;
+        this.BreakLabel = prevBreakLabel;
 
         this.code.comment('Fin-del-For');
     }
@@ -335,11 +381,7 @@ export class Compilador extends BaseVisitor {
     */
     visitBreak(node) {
         this.code.comment('Break');
-        if(this.PilaBreaks.length === 0) {
-            throw new Error('Break fuera De Un Ciclo o Switch');
-        }
-        const {type, label} = this.PilaBreaks[this.PilaBreaks.length - 1];
-        this.code.j(label);
+        this.code.j(this.BreakLabel);
         this.code.comment('Fin-Break');
     }
     
@@ -348,11 +390,7 @@ export class Compilador extends BaseVisitor {
     */
     visitContinue(node) {
         this.code.comment('Continue');
-        if(this.PilaContinues.length === 0) {
-            throw new Error('Continue fuera De Un Ciclo');
-        }
-        const {type, label} = this.PilaContinues[this.PilaContinues.length - 1];
-        this.code.j(label);
+        this.code.j(this.ContinueLabel);
         this.code.comment('Fin-Continue');
     }
     
