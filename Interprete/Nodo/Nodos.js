@@ -520,6 +520,47 @@ export class If extends Expresion {
     }
 }
     
+export class Ternario extends Expresion {
+
+    /**
+    * @param {Object} options
+    * @param {Expresion} options.Condicion Condicion a evaluar
+ * @param {Expresion} options.Verdadero Si la condicion es  verdadera
+ * @param {Expresion} options.Falso Si la condicion es falsa
+    */
+    constructor({ Condicion, Verdadero, Falso }) {
+        super();
+        
+        /**
+         * Condicion a evaluar
+         * @type {Expresion}
+        */
+        this.Condicion = Condicion;
+
+
+        /**
+         * Si la condicion es  verdadera
+         * @type {Expresion}
+        */
+        this.Verdadero = Verdadero;
+
+
+        /**
+         * Si la condicion es falsa
+         * @type {Expresion}
+        */
+        this.Falso = Falso;
+
+    }
+
+    /**
+     * @param {BaseVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitTernario(this);
+    }
+}
+    
 export class While extends Expresion {
 
     /**
@@ -1283,4 +1324,4 @@ export class FuncionForanea extends Expresion {
     }
 }
     
-export default { Expresion, SentenciaExpresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }
+export default { Expresion, SentenciaExpresion, OperacionBinaria, OperacionUnaria, Agrupacion, Entero, Decimal, Cadena, Caracter, Booleano, DeclaracionVar, ReferenciaVariable, Print, Asignacion, Bloque, If, Ternario, While, Switch, For, ForEach, Break, Continue, Return, Llamada, ParseInt, ParseFloat, ToString, ToLowerCase, ToUpperCase, TypeOf, DeclaracionArreglo1, DeclaracionArreglo2, DeclaracionArreglo3, IndexArreglo, JoinArreglo, LengthArreglo, AccesoArreglo, AsignacionArreglo, FuncionForanea }

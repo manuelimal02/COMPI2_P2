@@ -252,6 +252,24 @@ export class Compilador extends BaseVisitor {
     }
 
     /**
+    * @type {BaseVisitor['visitTernario']}
+    */
+    visitTernario(node) {
+        this.code.comment('Inicio-Ternario');
+        node.Condicion.accept(this);
+        this.code.popObject(r.T0);
+        const ElseTernarioLabel = this.code.getLabel();
+        const FinalTernarioLabel = this.code.getLabel();
+        this.code.beq(r.T0, r.ZERO, ElseTernarioLabel);
+        node.Verdadero.accept(this);
+        this.code.j(FinalTernarioLabel);
+        this.code.addLabel(ElseTernarioLabel);
+        node.Falso.accept(this);
+        this.code.addLabel(FinalTernarioLabel);
+        this.code.comment('Fin-Ternario');
+    }
+
+    /**
     * @type {BaseVisitor['visitWhile']}
     */
     visitWhile(node) {

@@ -17,6 +17,7 @@
         'asignacion': Nodos.Asignacion,
         'Bloque': Nodos.Bloque,
         'If': Nodos.If,
+        'Ternario': Nodos.Ternario,
         'While': Nodos.While,
         'Switch': Nodos.Switch,
         'For': Nodos.For,
@@ -186,6 +187,10 @@ ASIGNACION = asignado:LLAMADA _ "=" _ asignacion:ASIGNACION _
             { id, asignacion: NuevoNodo('OperacionUnaria', 
             { operador, expresion: NuevoNodo('ReferenciaVariable', { id }) }) }) }
             / ASIGNACIONARREGLO
+            / TERNARIO
+
+TERNARIO =  Condicion:LOGICO _ "?" _ Verdadero:LOGICO _ ":"_ Falso:LOGICO _ 
+            { return NuevoNodo('Ternario', {Condicion, Verdadero, Falso }) }
             / LOGICO
 
 LOGICO = OR

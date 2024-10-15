@@ -53,32 +53,6 @@ export class Interprete extends BaseVisitor {
     }
 
     /**
-    * @type {BaseVisitor['visitOperacionBinaria']}
-    */
-    visitOperacionAND(node) {
-        const izquierda = node.izquierda.accept(this);
-        const derecha = node.derecha.accept(this);
-        if (izquierda.tipo === 'boolean' && derecha.tipo === 'boolean') {
-            return {valor: izquierda.valor && derecha.valor, tipo: 'boolean'};
-        } else {    
-            throw new Error(`Error: Operación AND Solo Se Permite Entre Valores Booleanos.`);
-        }
-    }
-
-    /**
-    * @type {BaseVisitor['visitOperacionBinaria']}
-    */
-    visitOperacionOR(node) {
-        const izquierda = node.izquierda.accept(this);
-        const derecha = node.derecha.accept(this);
-        if(izquierda.tipo === 'boolean' && derecha.tipo === 'boolean') {
-            return {valor: izquierda.valor || derecha.valor, tipo: 'boolean'};
-        } else {    
-            throw new Error(`Error: Operación OR Solo Se Permite Entre Valores Booleanos.`);
-        }
-    }
-
-    /**
     * @type {BaseVisitor['visitOperacionUnaria']}
     */
     visitOperacionUnaria(node) {
@@ -175,7 +149,7 @@ export class Interprete extends BaseVisitor {
     * @type {BaseVisitor['visitTernario']}
     */
     visitTernario(node) {
-        const TernarioHandler1 = new TernarioHandler(node.condicion, node.verdadero, node.falso, this);
+        const TernarioHandler1 = new TernarioHandler(node.Condicion, node.Verdadero, node.Falso, this);
         return TernarioHandler1.EjecutarHandler();
     }
     

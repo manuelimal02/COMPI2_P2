@@ -58,7 +58,7 @@ export class OperacionBinariaHandler {
     }
 
     validarSuma() {
-        this.validarFlotantes();
+        
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int + int = int
@@ -69,6 +69,7 @@ export class OperacionBinariaHandler {
                     
                 //int + float = float
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fadd(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -80,6 +81,7 @@ export class OperacionBinariaHandler {
                 //float + float = float
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fadd(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -96,7 +98,7 @@ export class OperacionBinariaHandler {
     }
 
     validarResta() {
-        this.validarFlotantes();
+        
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int - int = int
@@ -107,6 +109,7 @@ export class OperacionBinariaHandler {
                     
                 //int - float = float
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fsub(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -118,6 +121,7 @@ export class OperacionBinariaHandler {
                 //float - float = float
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fsub(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -126,7 +130,7 @@ export class OperacionBinariaHandler {
     }
 
     validarMultiplicacion() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 //int * int = int
@@ -137,6 +141,7 @@ export class OperacionBinariaHandler {
                     
                 //int * float = float
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fmul(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -146,7 +151,9 @@ export class OperacionBinariaHandler {
             switch (this.derecha.type) {
                 //float * int = float
                 //float * float = float
+                case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fmul(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -155,7 +162,7 @@ export class OperacionBinariaHandler {
     }
 
     validarDivision() {
-        this.validarFlotantes();
+        
         if (this.izquierda.type === 'int') {
             switch (this.derecha.type) {
                 //int / int = int
@@ -166,6 +173,7 @@ export class OperacionBinariaHandler {
                     
                 //int / float = float
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fdiv(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -177,6 +185,7 @@ export class OperacionBinariaHandler {
                 //float / float = float
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fdiv(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
                     return { type: 'float', length: 4 };
@@ -193,7 +202,7 @@ export class OperacionBinariaHandler {
     }
 
     validarIgualdad() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 case 'int':
@@ -202,6 +211,7 @@ export class OperacionBinariaHandler {
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
                 case 'float':
+                    this.validarFlotantes();
                     this.code.feq(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -213,6 +223,7 @@ export class OperacionBinariaHandler {
                 // float == float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.feq(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -241,7 +252,7 @@ export class OperacionBinariaHandler {
     }
 
     validarDesigualdad() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 // int != int = boolean
@@ -252,6 +263,7 @@ export class OperacionBinariaHandler {
                     return { type: 'boolean', length: 4 };
                 // int != float = boolean
                 case 'float':
+                    this.validarFlotantes();
                     this.code.feq(r.T0, f.FT1, f.FT0);
                     this.code.xori(r.T0, r.T0, 1);
                     this.code.push(r.T0);
@@ -264,6 +276,7 @@ export class OperacionBinariaHandler {
                 // float != float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.feq(r.T0, f.FT1, f.FT0);
                     this.code.xori(r.T0, r.T0, 1);
                     this.code.push(r.T0);
@@ -294,7 +307,7 @@ export class OperacionBinariaHandler {
     }
 
     validarMayorQue() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 // int > int = boolean
@@ -304,6 +317,7 @@ export class OperacionBinariaHandler {
                     return { type: 'boolean', length: 4 };
                 // int > float = boolean
                 case 'float':
+                    this.validarFlotantes();
                     this.code.flt(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -315,6 +329,7 @@ export class OperacionBinariaHandler {
                 // float > float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.flt(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -329,7 +344,7 @@ export class OperacionBinariaHandler {
     }
 
     validarMayorIgualQue() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 // int >= int = boolean
@@ -340,6 +355,7 @@ export class OperacionBinariaHandler {
                     return { type: 'boolean', length: 4 };
                 // int >= float = boolean
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fle(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -351,6 +367,7 @@ export class OperacionBinariaHandler {
                 // float >= float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fle(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -365,7 +382,7 @@ export class OperacionBinariaHandler {
     }
 
     validarMenorQue() {
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 // int < int = boolean
@@ -375,6 +392,7 @@ export class OperacionBinariaHandler {
                     return { type: 'boolean', length: 4 };
                 // int < float = boolean
                 case 'float':
+                    this.validarFlotantes();
                     this.code.flt(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -386,6 +404,7 @@ export class OperacionBinariaHandler {
                 // float < float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.flt(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -400,7 +419,7 @@ export class OperacionBinariaHandler {
     }
 
     validarMenorIgualQue(){
-        this.validarFlotantes();
+        
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
                 // int <= int = boolean
@@ -411,6 +430,7 @@ export class OperacionBinariaHandler {
                     return { type: 'boolean', length: 4 };
                 // int <= float = boolean
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fle(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
@@ -422,6 +442,7 @@ export class OperacionBinariaHandler {
                 // float <= float = boolean
                 case 'int':
                 case 'float':
+                    this.validarFlotantes();
                     this.code.fle(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
                     return { type: 'boolean', length: 4 };
