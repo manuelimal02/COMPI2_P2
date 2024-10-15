@@ -208,21 +208,26 @@ export class Compilador extends BaseVisitor {
     */
     visitIf(node) {
         this.code.comment('Inicio-del-If');
+        this.code.comment('Condicion-Del-If');
         node.condicion.accept(this);
+        this.code.comment('Fin-De-Condicion');
         this.code.popObject(r.T0);
         const hasElse = !!node.sentenciasFalso
         if (hasElse) {
             const elseLabel = this.code.getLabel();
             const endIfLabel = this.code.getLabel();
             this.code.beq(r.T0, r.ZERO, elseLabel);
+            this.code.comment('Sentencias-Verdadero');
             node.sentenciasVerdadero.accept(this);
             this.code.j(endIfLabel);
             this.code.addLabel(elseLabel);
+            this.code.comment('Sentencias-Falso');
             node.sentenciasFalso.accept(this);
             this.code.addLabel(endIfLabel);
         } else {
             const endIfLabel = this.code.getLabel();
             this.code.beq(r.T0, r.ZERO, endIfLabel);
+            this.code.comment('Sentencias-Verdadero');
             node.sentenciasVerdadero.accept(this);
             this.code.addLabel(endIfLabel);
         }
@@ -252,6 +257,7 @@ export class Compilador extends BaseVisitor {
 
         this.code.comment('Cuerpo-Del-While');
         node.sentencias.accept(this);
+        this.code.comment('Fin-Del-Cuerpo-While');
         this.code.j(startWhile);
 
         this.code.addLabel(endWhile);
@@ -261,41 +267,21 @@ export class Compilador extends BaseVisitor {
         this.code.comment('Fin-Del-While');
     }
 
-    /*
-    const startWhileLabel = this.code.getLabel();
-    const prevContinueLabel = this.continueLabel;
-    this.continueLabel = startWhileLabel;
-
-    const endWhileLabel = this.code.getLabel();
-    const prevBreakLabel = this.breakLabel;
-    this.breakLabel = endWhileLabel;
-
-    this.code.addLabel(startWhileLabel);
-    this.code.comment('Condicion');
-    node.cond.accept(this);
-    this.code.popObject(r.T0);
-    this.code.comment('Fin de condicion');
-    this.code.beq(r.T0, r.ZERO, endWhileLabel);
-    this.code.comment('Cuerpo del while');
-    node.instrucciones.accept(this);
-    this.code.j(startWhileLabel);
-    this.code.addLabel(endWhileLabel);
-
-    this.continueLabel = prevContinueLabel;
-    this.breakLabel = prevBreakLabel;
-    */
-
     /**
     * @type {BaseVisitor['visitSwitch']}
     */
     visitSwitch(node) {
         this.code.comment('Inicio-del-Switch');
+        
         node.condicion.accept(this);
         this.code.popObject(r.T1);
-        const LabelFinalizacion = this.code.getLabel();
-        this.PilaBreaks.push({ type: 'switch', label: LabelFinalizacion });
+
+        const endSwitchLabel = this.code.getLabel();
+        const prevBreakLabel = this.BreakLabel;
+        this.BreakLabel = endSwitchLabel;
+
         const LabelCasos = node.cases.map(() => this.code.getLabel());
-        const LabelDefault = node.default1 ? this.code.getLabel() : LabelFinalizacion;
+        const LabelDefault = node.default1 ? this.code.getLabel() : endSwitchLabel;
 
         node.cases.forEach((caseNode, index) => {
             caseNode.valor.accept(this);
@@ -317,8 +303,8 @@ export class Compilador extends BaseVisitor {
                 sentencia.accept(this);
             });
         }
-        this.code.addLabel(LabelFinalizacion);
-        this.PilaBreaks.pop();
+        this.code.addLabel(endSwitchLabel);
+        this.BreakLabel = prevBreakLabel;
         this.code.comment('Fin-del-Switch');
     }
 
@@ -359,7 +345,7 @@ export class Compilador extends BaseVisitor {
         this.code.addLabel(incrementFor);
         this.code.comment('Inicio-Incremento-For');
         node.incremento.accept(this);
-        this.code.comment('Inicio-Incremento-For');
+        this.code.comment('Final-Incremento-For');
         this.code.popObject(r.T0);
         this.code.j(startFor);
 
