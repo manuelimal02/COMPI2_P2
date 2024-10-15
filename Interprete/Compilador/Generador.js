@@ -134,6 +134,14 @@ export class Generador {
         this.instrucciones.push(new Instruction('mv', rd, rs))
     }
 
+    sltu(rd, rs1, rs2) {
+        this.instrucciones.push(new Instruction('sltu', rd, rs1, rs2));
+    }
+
+    sltiu(rd, rs1, imm) {
+        this.instrucciones.push(new Instruction('sltiu', rd, rs1, imm));
+    }
+
     ecall() {
         this.instrucciones.push(new Instruction('ecall'))
     }
@@ -186,6 +194,22 @@ export class Generador {
 
     flw(rd, rs1, inmediato = 0) {
         this.instrucciones.push(new Instruction('flw', rd, `${inmediato}(${rs1})`))
+    }
+
+    fmvx(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.x.s', rd, rs1))
+    }
+
+    fmvs(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.s.x', rd, rs1))
+    }
+
+    fmvx(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.x.s', rd, rs1))
+    }
+
+    fmvxw(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.x.w', rd, rs1))
     }
 
     fsw(rs1, rs2, inmediato = 0) {

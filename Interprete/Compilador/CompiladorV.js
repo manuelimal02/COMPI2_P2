@@ -425,9 +425,12 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitParseInt']}
      */ 
     visitParseFloat(node) {
-        console.log('ENTRA A PARSE FLOAT');
+        node.Argumento.accept(this);
+        this.code.popObject(r.A0);
+        this.code.callBuiltin('parseFloat');
+        this.code.pushFloat(f.FT0)
+        this.code.pushObject({ type: 'float', length: 4 });
     }
-    
 
     /**
      * @type {BaseVisitor['visitToString']}
@@ -443,7 +446,6 @@ export class Compilador extends BaseVisitor {
         node.Argumento.accept(this);
         this.code.callBuiltin('toLowerCase');
     }
-    
 
     /**
      * @type {BaseVisitor['visitToUpperCase']}
@@ -458,7 +460,8 @@ export class Compilador extends BaseVisitor {
      */ 
     visitTypeOf(node) {
         node.Argumento.accept(this);
-        const valor = this.code.popObject(r.T0);
+        const EsFlotante = this.code.getTopObject().type === 'float';
+        const valor = this.code.popObject(EsFlotante ? f.FT0 : r.T0);
         if (valor.type === 'int') {
             this.code.pushConstant({ type: 'string', valor: 'int' });
         } else if (valor.type === 'float') {
