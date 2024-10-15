@@ -19,7 +19,8 @@ export class Compilador extends BaseVisitor {
     */
     visitSentenciaExpresion(node) {
         node.expresion.accept(this);
-        this.code.popObject(r.T0);
+        const EsFlotante = this.code.getTopObject().type === 'float';
+        this.code.popObject(EsFlotante ? f.FT0 : r.T0);
     }
 
     /**
@@ -121,7 +122,7 @@ export class Compilador extends BaseVisitor {
                     this.code.pushObject({ type: 'int', valor: 0 });
                     break;
                 case 'float':
-                    break;
+                    this.code.pushObject({ type: 'float', valor: 0.0 });
                 case 'boolean':
                     this.code.pushObject({ type: 'boolean', valor: false });
                     break;
@@ -142,11 +143,11 @@ export class Compilador extends BaseVisitor {
     */
     visitReferenciaVariable(node) {
         this.code.comment(`Referencia-Variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
-        const [offset, variableObject] = this.code.getObject(node.id);
+        const [offset, VariableObjeto] = this.code.getObject(node.id);
         this.code.addi(r.T0, r.SP, offset);
         this.code.lw(r.T1, r.T0);
         this.code.push(r.T1);
-        this.code.pushObject({ ...variableObject, id: undefined });
+        this.code.pushObject({ ...VariableObjeto, id: undefined });
         this.code.comment(`Fin-Referencia-Variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
     }
 
@@ -155,7 +156,7 @@ export class Compilador extends BaseVisitor {
     */
     visitPrint(node) {
         this.code.comment('Print');
-        const tipoPrint = {
+        const TipoDePrint = {
             'int': () => this.code.printInt(),
             'string': () => this.code.printString(),
             'boolean': () => this.code.printBoolean(),
@@ -164,9 +165,9 @@ export class Compilador extends BaseVisitor {
         }
         for (let i = 0; i < node.expresion.length; i++) {
             node.expresion[i].accept(this);
-            const isFloat = this.code.getTopObject().type === 'float';
-            const object = this.code.popObject(isFloat ? f.FA0 : r.A0);
-            tipoPrint[object.type]();
+            const EsFlotante = this.code.getTopObject().type === 'float';
+            const VariableObjeto = this.code.popObject(EsFlotante ? f.FA0 : r.A0);
+            TipoDePrint[VariableObjeto.type]();
         }
         this.code.printNewLine();
         this.code.comment('Fin-Print');
@@ -178,13 +179,29 @@ export class Compilador extends BaseVisitor {
     visitAsignacion(node) {
         this.code.comment(`Asignacion-Variable: ${node.id}`);
         node.asignacion.accept(this);
-        const valueObject = this.code.popObject(r.T0);
-        const [offset, variableObject] = this.code.getObject(node.id);
+
+        if(this.code.getTopObject().type === "float") {  
+            const ValorObjeto = this.code.popObject(f.FT0)
+            const [offset, Variable] = this.code.getObject(node.id)
+            this.code.li(r.T1, offset)
+            this.code.fcvtsw(f.FT1, r.T1)
+            this.code.fcvtsw(f.FT2, r.SP)
+            this.code.addi(r.T1, r.SP, offset)
+            this.code.sw(r.T0, r.T1)
+            this.code.fadd(f.FT1, f.FT2, f.FT1)
+            this.code.fsw(f.FT0, r.T1)
+            this.code.pushFloat(f.FT0)
+            this.code.pushObject(ValorObjeto)
+            this.code.comment(`Fin-Asignacion-Variable: ${node.id}`);
+            return
+        }
+        const ValorObjeto = this.code.popObject(r.T0);
+        const [offset, VariableObjeto] = this.code.getObject(node.id);
         this.code.addi(r.T1, r.SP, offset);
         this.code.sw(r.T0, r.T1);
-        variableObject.type = valueObject.type;
+        VariableObjeto.type = ValorObjeto.type;
         this.code.push(r.T0);
-        this.code.pushObject(valueObject);
+        this.code.pushObject(ValorObjeto);
         this.code.comment(`Fin-Asignacion-Variable: ${node.id}`);
     }
 
@@ -196,9 +213,9 @@ export class Compilador extends BaseVisitor {
         this.code.newScope();
         node.sentencias.forEach(d => d.accept(this));
         this.code.comment('Reduciendo-Pila');
-        const bytesToRemove = this.code.endScope();
-        if (bytesToRemove > 0) {
-            this.code.addi(r.SP, r.SP, bytesToRemove);
+        const BytesEliminados = this.code.endScope();
+        if (BytesEliminados > 0) {
+            this.code.addi(r.SP, r.SP, BytesEliminados);
         }
         this.code.comment('Fin-Bloque');
     }
@@ -212,24 +229,24 @@ export class Compilador extends BaseVisitor {
         node.condicion.accept(this);
         this.code.comment('Fin-De-Condicion');
         this.code.popObject(r.T0);
-        const hasElse = !!node.sentenciasFalso
-        if (hasElse) {
-            const elseLabel = this.code.getLabel();
-            const endIfLabel = this.code.getLabel();
-            this.code.beq(r.T0, r.ZERO, elseLabel);
+        const ExisteElse = !!node.sentenciasFalso
+        if (ExisteElse) {
+            const ElseLabel = this.code.getLabel();
+            const FinalIfLabel = this.code.getLabel();
+            this.code.beq(r.T0, r.ZERO, ElseLabel);
             this.code.comment('Sentencias-Verdadero');
             node.sentenciasVerdadero.accept(this);
-            this.code.j(endIfLabel);
-            this.code.addLabel(elseLabel);
+            this.code.j(FinalIfLabel);
+            this.code.addLabel(ElseLabel);
             this.code.comment('Sentencias-Falso');
             node.sentenciasFalso.accept(this);
-            this.code.addLabel(endIfLabel);
+            this.code.addLabel(FinalIfLabel);
         } else {
-            const endIfLabel = this.code.getLabel();
-            this.code.beq(r.T0, r.ZERO, endIfLabel);
+            const FinalIfLabel = this.code.getLabel();
+            this.code.beq(r.T0, r.ZERO, FinalIfLabel);
             this.code.comment('Sentencias-Verdadero');
             node.sentenciasVerdadero.accept(this);
-            this.code.addLabel(endIfLabel);
+            this.code.addLabel(FinalIfLabel);
         }
         this.code.comment('Fin-del-If');
     }
@@ -240,30 +257,30 @@ export class Compilador extends BaseVisitor {
     visitWhile(node) {
         this.code.comment('Inicio-de-While');
 
-        const startWhile = this.code.getLabel();
-        const prevContinueLabel = this.ContinueLabel;
-        this.ContinueLabel = startWhile;
+        const InicioWhileLabel = this.code.getLabel();
+        const ContinueLabelPrevio = this.ContinueLabel;
+        this.ContinueLabel = InicioWhileLabel;
 
-        const endWhile = this.code.getLabel();
-        const prevBreakLabel = this.BreakLabel;
-        this.BreakLabel = endWhile;
+        const FinalWhileLabel = this.code.getLabel();
+        const BreakLabelPrevio = this.BreakLabel;
+        this.BreakLabel = FinalWhileLabel;
 
-        this.code.addLabel(startWhile);
+        this.code.addLabel(InicioWhileLabel);
         this.code.comment('Condicion-Del-While');
         node.condicion.accept(this);
         this.code.popObject(r.T0);
         this.code.comment('Fin-De-Condicion');
-        this.code.beq(r.T0, r.ZERO, endWhile);
+        this.code.beq(r.T0, r.ZERO, FinalWhileLabel);
 
         this.code.comment('Cuerpo-Del-While');
         node.sentencias.accept(this);
         this.code.comment('Fin-Del-Cuerpo-While');
-        this.code.j(startWhile);
+        this.code.j(InicioWhileLabel);
 
-        this.code.addLabel(endWhile);
+        this.code.addLabel(FinalWhileLabel);
 
-        this.ContinueLabel = prevContinueLabel;
-        this.BreakLabel = prevBreakLabel;
+        this.ContinueLabel = ContinueLabelPrevio;
+        this.BreakLabel = BreakLabelPrevio;
         this.code.comment('Fin-Del-While');
     }
 
@@ -276,35 +293,35 @@ export class Compilador extends BaseVisitor {
         node.condicion.accept(this);
         this.code.popObject(r.T1);
 
-        const endSwitchLabel = this.code.getLabel();
-        const prevBreakLabel = this.BreakLabel;
-        this.BreakLabel = endSwitchLabel;
+        const FinalSwitchLabel = this.code.getLabel();
+        const BreakLabelPrevio = this.BreakLabel;
+        this.BreakLabel = FinalSwitchLabel;
 
-        const LabelCasos = node.cases.map(() => this.code.getLabel());
-        const LabelDefault = node.default1 ? this.code.getLabel() : endSwitchLabel;
+        const CasosSwitchLabel = node.cases.map(() => this.code.getLabel());
+        const DefaultSwitchLabel = node.default1 ? this.code.getLabel() : FinalSwitchLabel;
 
-        node.cases.forEach((caseNode, index) => {
-            caseNode.valor.accept(this);
+        node.cases.forEach((NodoDelCaso, index) => {
+            NodoDelCaso.valor.accept(this);
             this.code.popObject(r.T0);
-            this.code.beq(r.T1, r.T0, LabelCasos[index]);
+            this.code.beq(r.T1, r.T0, CasosSwitchLabel[index]);
         });
-        this.code.j(LabelDefault);
+        this.code.j(DefaultSwitchLabel);
 
-        node.cases.forEach((caseNode, index) => {
-            this.code.addLabel(LabelCasos[index]);
-            caseNode.bloquecase.forEach(sentencia => {
+        node.cases.forEach((NodoDelCaso, index) => {
+            this.code.addLabel(CasosSwitchLabel[index]);
+            NodoDelCaso.bloquecase.forEach(sentencia => {
                 sentencia.accept(this)
             });
         });
 
         if (node.default1) {
-            this.code.addLabel(LabelDefault);
+            this.code.addLabel(DefaultSwitchLabel);
             node.default1.sentencias.forEach(sentencia => {
                 sentencia.accept(this);
             });
         }
-        this.code.addLabel(endSwitchLabel);
-        this.BreakLabel = prevBreakLabel;
+        this.code.addLabel(FinalSwitchLabel);
+        this.BreakLabel = BreakLabelPrevio;
         this.code.comment('Fin-del-Switch');
     }
 
@@ -315,15 +332,15 @@ export class Compilador extends BaseVisitor {
     visitFor(node) {
         this.code.comment('Inicio-del-For');
 
-        const startFor = this.code.getLabel();
+        const InicioForLabel = this.code.getLabel();
 
-        const endFor = this.code.getLabel();
-        const prevBreakLabel = this.BreakLabel;
-        this.BreakLabel = endFor;
+        const FinalForLabel = this.code.getLabel();
+        const BreakLabelPrevio = this.BreakLabel;
+        this.BreakLabel = FinalForLabel;
 
-        const incrementFor = this.code.getLabel();
-        const prevContinueLabel = this.ContinueLabel;
-        this.ContinueLabel = incrementFor;
+        const IncrementoForLabel = this.code.getLabel();
+        const ContinueLabelPrevio = this.ContinueLabel;
+        this.ContinueLabel = IncrementoForLabel;
 
         this.code.newScope();
 
@@ -331,33 +348,33 @@ export class Compilador extends BaseVisitor {
         node.declaracion.accept(this);
         this.code.comment('Fin-Declaracion/Asignacion-For');
 
-        this.code.addLabel(startFor);
+        this.code.addLabel(InicioForLabel);
         this.code.comment('Condicion-For');
         node.condicion.accept(this);
         this.code.popObject(r.T0);
         this.code.comment('Fin-Condicion-For');
-        this.code.beq(r.T0, r.ZERO, endFor);
+        this.code.beq(r.T0, r.ZERO, FinalForLabel);
 
         this.code.comment('Cuerpo-For');
         node.sentencia.accept(this);
         this.code.comment('Fin-Cuerpo-For');
 
-        this.code.addLabel(incrementFor);
+        this.code.addLabel(IncrementoForLabel);
         this.code.comment('Inicio-Incremento-For');
         node.incremento.accept(this);
         this.code.comment('Final-Incremento-For');
         this.code.popObject(r.T0);
-        this.code.j(startFor);
+        this.code.j(InicioForLabel);
 
-        this.code.addLabel(endFor);
+        this.code.addLabel(FinalForLabel);
 
-        const bytesToRemove = this.code.endScope();
-        if (bytesToRemove > 0) {
-            this.code.addi(r.SP, r.SP, bytesToRemove);
+        const BytesEliminados = this.code.endScope();
+        if (BytesEliminados > 0) {
+            this.code.addi(r.SP, r.SP, BytesEliminados);
         }
 
-        this.ContinueLabel = prevContinueLabel;
-        this.BreakLabel = prevBreakLabel;
+        this.ContinueLabel = ContinueLabelPrevio;
+        this.BreakLabel = BreakLabelPrevio;
 
         this.code.comment('Fin-del-For');
     }
@@ -485,16 +502,17 @@ export class Compilador extends BaseVisitor {
     visitDeclaracionArreglo2(node) {
         this.code.comment('Inicio-Declaracion-Arreglo');
 
-        const nombre = node.id;
-        const tipo = node.tipo1;
-        const tamano = node.numero.accept(this);
+        const NombreArreglo = node.id;
+        const TipoArreglo = node.tipo1;
+        const TamanioArreglo = node.numero.accept(this);
 
-        this.code.NuevoArreglo(nombre, tipo, tamano);
+        this.code.NuevoArreglo(NombreArreglo, TipoArreglo, TamanioArreglo);
 
-        this.code.la(r.T5, nombre);
+        this.code.la(r.T5, NombreArreglo);
 
         let ValorPorDefecto;
-        switch (tipo) {
+
+        switch (TipoArreglo) {
             case 'int':
                 ValorPorDefecto = 0;
                 break;
@@ -513,12 +531,12 @@ export class Compilador extends BaseVisitor {
         }
 
         this.code.li(r.T0, ValorPorDefecto);
-        for (let i = 0; i < tamano; i++) {
+        for (let i = 0; i < TamanioArreglo; i++) {
             this.code.sw(r.T0, r.T5, i * 4);
         }
 
-        this.code.pushObject({ type: tipo, length: tamano * 4 });
-        this.code.tagObject(nombre);
+        this.code.pushObject({ type: TipoArreglo, length: TamanioArreglo * 4 });
+        this.code.tagObject(NombreArreglo);
 
         this.code.comment('Fin-Declaracion-Arreglo');
     }
@@ -559,7 +577,7 @@ export class Compilador extends BaseVisitor {
         node.index.accept(this);
         this.code.popObject(r.T0);
 
-        const [offset, arrayObject] = this.code.getObject(node.id);
+        const [offset, ArregloObjeto] = this.code.getObject(node.id);
 
         this.code.la(r.T5, node.id);
         this.code.li(r.T1,4);   
@@ -572,7 +590,7 @@ export class Compilador extends BaseVisitor {
 
         this.code.push(r.T3);
 
-        this.code.pushObject({ ...arrayObject, id: undefined });
+        this.code.pushObject({ ...ArregloObjeto, id: undefined });
         this.code.comment('Fin-Acceso-Arreglo');
     
     }
@@ -586,24 +604,18 @@ export class Compilador extends BaseVisitor {
         node.valor.accept(this);
         node.index.accept(this);
 
-        const datoobJECT = this.code.popObject(r.T0)
-        const indexObject = this.code.popObject(r.T1)
-        const [offset, variableO] = this.code.getObject(node.id)
+        const ValorObjeto = this.code.popObject(r.T0)
+        const IndiceObjeto = this.code.popObject(r.T1)
+        const [offset, Variable] = this.code.getObject(node.id)
 
         this.code.la(r.T5, node.id)
-
         this.code.li(r.T2, 4)
-
         this.code.mul(r.T0, r.T0, r.T2)
-
         this.code.add(r.T3, r.T5, r.T0)
-
         this.code.sw(r.T1, r.T3)
-
         this.code.push(r.T1)
-
-        this.code.pushObject(datoobJECT)
-
+        this.code.pushObject(ValorObjeto)
+        
         this.code.comment('Fin-Asignacion-Variable');
     
     }

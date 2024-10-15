@@ -428,7 +428,11 @@ export class Generador {
     }
 
     pushObject(object) {
-        this.objectStack.push(object);
+        //this.objectStack.push(object);
+        this.objectStack.push({
+            ...object,
+            depth: this.depth,
+        });
     }
 
     printNewLine() {
