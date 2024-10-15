@@ -77,11 +77,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 //float + int = float
-                case 'int':
-                    this.code.fadd(f.FT0, f.FT1, f.FT0);
-                    this.code.pushFloat(f.FT0);
-                    return { type: 'float', length: 4 };
                 //float + float = float
+                case 'int':
                 case 'float':
                     this.code.fadd(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
@@ -118,11 +115,8 @@ export class OperacionBinariaHandler {
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float - int = float
-                case 'int':
-                    this.code.fsub(f.FT0, f.FT1, f.FT0);
-                    this.code.pushFloat(f.FT0);
-                    return { type: 'float', length: 4 };
                 //float - float = float
+                case 'int':
                 case 'float':
                     this.code.fsub(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
@@ -151,10 +145,6 @@ export class OperacionBinariaHandler {
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float * int = float
-                case 'int':
-                    this.code.fmul(f.FT0, f.FT1, f.FT0);
-                    this.code.pushFloat(f.FT0);
-                    return { type: 'float', length: 4 };
                 //float * float = float
                 case 'float':
                     this.code.fmul(f.FT0, f.FT1, f.FT0);
@@ -184,11 +174,8 @@ export class OperacionBinariaHandler {
         if (this.izquierda.type === 'float') {
             switch (this.derecha.type) {
                 //float / int = float
-                case 'int':
-                    this.code.fdiv(f.FT0, f.FT1, f.FT0);
-                    this.code.pushFloat(f.FT0);
-                    return { type: 'float', length: 4 };
                 //float / float = float
+                case 'int':
                 case 'float':
                     this.code.fdiv(f.FT0, f.FT1, f.FT0);
                     this.code.pushFloat(f.FT0);
@@ -209,13 +196,11 @@ export class OperacionBinariaHandler {
         this.validarFlotantes();
         if(this.izquierda.type === 'int') {
             switch(this.derecha.type) {
-                // int == int = boolean
                 case 'int':
-                this.code.xor(r.T0, r.T1, r.T0);
-                this.code.seqz(r.T0, r.T0);
-                this.code.push(r.T0);
-                return { type: 'boolean', length: 4 };
-                // int == float = boolean
+                    this.code.xor(r.T0, r.T1, r.T0);
+                    this.code.seqz(r.T0, r.T0);
+                    this.code.push(r.T0);
+                    return { type: 'boolean', length: 4 };
                 case 'float':
                     this.code.feq(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
@@ -225,11 +210,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float == int = boolean
-                case 'int':
-                    this.code.feq(r.T0, f.FT0, f.FT1);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float == float = boolean
+                case 'int':
                 case 'float':
                     this.code.feq(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
@@ -238,6 +220,9 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string == string = boolean
+            this.code.callBuiltin('CompararString');
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean == boolean = boolean
@@ -245,7 +230,6 @@ export class OperacionBinariaHandler {
             this.code.seqz(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
-        
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char == char = boolean
@@ -277,12 +261,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float != int = boolean
-                case 'int':
-                    this.code.feq(r.T0, f.FT1, f.FT0);
-                    this.code.xori(r.T0, r.T0, 1);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float != float = boolean
+                case 'int':
                 case 'float':
                     this.code.feq(r.T0, f.FT1, f.FT0);
                     this.code.xori(r.T0, r.T0, 1);
@@ -292,6 +272,10 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string != string = boolean
+            this.code.callBuiltin('CompararString');
+            this.code.xori(r.T0, r.T0, 1);
+            this.code.push(r.T0);
+            return { type: 'boolean', length: 4 };
         }
         if(this.izquierda.type === 'boolean' && this.derecha.type === 'boolean') {
             // boolean != boolean = boolean
@@ -299,7 +283,6 @@ export class OperacionBinariaHandler {
             this.code.snez(r.T0, r.T0);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
-        
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
             // char != char = boolean
@@ -329,11 +312,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float > int = boolean
-                case 'int':
-                    this.code.flt(r.T0, f.FT0, f.FT1);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float > float = boolean
+                case 'int':
                 case 'float':
                     this.code.flt(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
@@ -368,11 +348,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float >= int = boolean
-                case 'int':
-                    this.code.fle(r.T0, f.FT0, f.FT1);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float >= float = boolean
+                case 'int':
                 case 'float':
                     this.code.fle(r.T0, f.FT0, f.FT1);
                     this.code.push(r.T0);
@@ -406,11 +383,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float < int = boolean
-                case 'int':
-                    this.code.flt(r.T0, f.FT1, f.FT0);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float < float = boolean
+                case 'int':
                 case 'float':
                     this.code.flt(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
@@ -445,11 +419,8 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'float') {
             switch(this.derecha.type) {
                 // float <= int = boolean
-                case 'int':
-                    this.code.fle(r.T0, f.FT1, f.FT0);
-                    this.code.push(r.T0);
-                    return { type: 'boolean', length: 4 };
                 // float <= float = boolean
+                case 'int':
                 case 'float':
                     this.code.fle(r.T0, f.FT1, f.FT0);
                     this.code.push(r.T0);
@@ -457,6 +428,7 @@ export class OperacionBinariaHandler {
             }
         }
         if (this.izquierda.type === 'char' && this.derecha.type === 'char') {
+            // char <= char = boolean
             this.code.slt(r.T0, r.T0, r.T1);
             this.code.xori(r.T0, r.T0, 1);
             this.code.push(r.T0);
