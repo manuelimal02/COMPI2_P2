@@ -119,18 +119,19 @@ export class Compilador extends BaseVisitor {
         } else {
             switch (node.tipo) {
                 case 'int':
-                    this.code.pushObject({ type: 'int', valor: 0 });
+                    this.code.pushConstant({ type: 'int', valor: 0 });
                     break;
                 case 'float':
-                    this.code.pushObject({ type: 'float', valor: 0.0 });
+                    this.code.pushConstant({ type: 'float', valor: 0.0 });
+                    break;
                 case 'boolean':
-                    this.code.pushObject({ type: 'boolean', valor: false });
+                    this.code.pushConstant({ type: 'boolean', valor: false });
                     break;
                 case 'string':
-                    this.code.pushObject({ type: 'string', valor: "" });
+                    this.code.pushConstant({ type: 'string', valor: "" });
                     break;
                 case 'char':
-                    this.code.pushObject({ type: 'string', valor: "" });
+                    this.code.pushConstant({ type: 'char', valor: '' });
                     break;
             }
         }
@@ -144,9 +145,15 @@ export class Compilador extends BaseVisitor {
     visitReferenciaVariable(node) {
         this.code.comment(`Referencia-Variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
         const [offset, VariableObjeto] = this.code.getObject(node.id);
+        const EsFlotante = VariableObjeto.type === 'float';
         this.code.addi(r.T0, r.SP, offset);
-        this.code.lw(r.T1, r.T0);
-        this.code.push(r.T1);
+        if (EsFlotante) {
+            this.code.flw(f.FT0, r.T0);
+            this.code.pushFloat(f.FT0);
+        } else {
+            this.code.lw(r.T1, r.T0);
+            this.code.push(r.T1);
+        }
         this.code.pushObject({ ...VariableObjeto, id: undefined });
         this.code.comment(`Fin-Referencia-Variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
     }
