@@ -451,7 +451,7 @@ return expansion.reduce(
   var peg$f69 = function(Argumento) {return NuevoNodo('TypeOf', {Argumento})};
   var peg$f70 = function(id, index) {return NuevoNodo('IndexArreglo', {id, index})};
   var peg$f71 = function(id) {return NuevoNodo('JoinArreglo', {id})};
-  var peg$f72 = function(id) {return NuevoNodo('LengthArreglo', {id, posicion})};
+  var peg$f72 = function(id) {return NuevoNodo('LengthArreglo', {id})};
   var peg$f73 = function(id, index) {return NuevoNodo('AccesoArreglo', {id, index})};
   var peg$f74 = function(booleano) {return booleano};
   var peg$f75 = function(caracter) {return caracter};

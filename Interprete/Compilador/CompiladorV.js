@@ -465,7 +465,7 @@ export class Compilador extends BaseVisitor {
         const esFlotante = this.code.getTopObject().type === 'float';
         const valor = this.code.popObject(esFlotante ? f.FA0 : r.A0);
         if (valor.type === 'float') {
-            console.log('To String Con Float')
+            this.code.callBuiltin('floatToString');
         } else {
             if (valor.type === 'int') {
                 this.code.li(r.A1, 1);
@@ -599,7 +599,7 @@ export class Compilador extends BaseVisitor {
         this.code.li(r.T1, VariableObjeto.length);
         this.code.la(r.T0, NombreArreglo2);
 
-        this.code.NuevoArreglo(NombreArreglo1, TipoArreglo, VariableObjeto.length);
+        this.code.NuevoArreglo(NombreArreglo1, TipoArreglo, VariableObjeto.length/4);
         this.code.la(r.T2, NombreArreglo1);
         this.code.li(r.T3, 0);  
         
@@ -629,7 +629,6 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitIndexArreglo']}
      */
     visitIndexArreglo(node) {
-    
     }
 
     /**
@@ -643,7 +642,14 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitLengthArreglo']}
      */
     visitLengthArreglo(node) {
-    
+        this.code.comment('Inicio-Length-Arreglo');
+        const [offset, VariableObjeto] = this.code.getObject(node.id);
+        const NumeroElemntos = VariableObjeto.length / 4;
+        this.code.la(r.T5, node.id);
+        this.code.li(r.T1, NumeroElemntos);
+        this.code.push(r.T1);
+        this.code.pushObject({ type: 'int', length: 4 });
+        this.code.comment('Fin-Length-Arreglo');
     }
     
     /**

@@ -579,42 +579,15 @@ export class Interprete extends BaseVisitor {
      * @type {BaseVisitor['visitLengthArreglo']}
      */
     visitLengthArreglo(node) {
-        if (node.posicion.length === 0) {
-            const arreglo = this.entornoActual.getVariable(node.id).valor;
-            if (!arreglo) {
-                throw new Error(`El Arreglo "${node.id2}" No Está Definido.`);
-            }
-            if (!Array.isArray(arreglo.valor)) {
-                throw new Error(`La Variable: "${node.id}" No Es Un Arreglo.`);
-            }
-            return {valor: arreglo.valor.length, tipo: "int"};
-        } else {
-            const arreglo = this.entornoActual.getVariable(node.id).valor;
-            if (!arreglo) {
-                throw new Error(`El Arreglo "${node.id}" No Está Definido.`);
-            }
-            if (!Array.isArray(arreglo.valor)) {
-                throw new Error(`La Variable: "${node.id}" No Es Un Arreglo.`);
-            }
-            let ref = arreglo.valor;
-            for (let i = 0; i < node.posicion.length; i++) {
-                const numero = node.posicion[i].accept(this);
-                if (numero.tipo !== 'int') {
-                    throw new Error(`El Índice De Acceso "${i + 1}" Debe Ser De Tipo Int: "${numero.tipo}".`);
-                }
-                if (!Array.isArray(ref)) {
-                    throw new Error(`La Referencia En La Dimensión "${i + 1}" No Es Un Arreglo.`);
-                }
-                if (numero.valor < 0 || numero.valor >= ref.length) {
-                    throw new Error(`Índice Fuera De Rango: "${numero.valor}" En Dimensión "${i + 1}".`);
-                }
-                ref = ref[numero.valor];
-            }
-            if (!Array.isArray(ref)) {
-                throw new Error(`La Referencia Final No Es Un Arreglo, No Se Puede Obtener Su Longitud.`);
-            }
-            return {valor: ref.length, tipo: "int"};
+        const arreglo = this.entornoActual.getVariable(node.id).valor;
+        if (!arreglo) {
+            throw new Error(`El Arreglo "${node.id2}" No Está Definido.`);
         }
+        if (!Array.isArray(arreglo.valor)) {
+            throw new Error(`La Variable: "${node.id}" No Es Un Arreglo.`);
+        }
+        return {valor: arreglo.valor.length, tipo: "int"};
+        
     }
     
     

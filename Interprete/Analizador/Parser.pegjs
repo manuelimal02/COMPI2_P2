@@ -282,7 +282,7 @@ UNARIA = "-" _ expresion:UNARIA
         / id:IDENTIFICADOR _ ".join()"
             {return NuevoNodo('JoinArreglo', {id})}
         / id:IDENTIFICADOR _".length"
-            {return NuevoNodo('LengthArreglo', {id, posicion})}
+            {return NuevoNodo('LengthArreglo', {id})}
         / id:IDENTIFICADOR _ "[" _ index:OTRAEXPRESION _ "]"
             {return NuevoNodo('AccesoArreglo', {id, index})}
         / OTRAEXPRESION

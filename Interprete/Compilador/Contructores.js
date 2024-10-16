@@ -333,6 +333,86 @@ export const toString = (code) => {
     code.addi(r.HP, r.HP, 1)
 }
 
+/**
+ * @param {Generador} code
+ */
+export const floatToString = (code) => {
+    // FA0 -> valor a convertir (float)
+    code.comment('Guardando en el stack la dirección en heap del resultado')
+    code.push(r.HP);
+
+    const endFunction = code.getLabel()
+    const floatCase = code.getLabel()
+    const floatLoop = code.getLabel()
+    const floatReverse = code.getLabel()
+    const floatEnd = code.getLabel()
+
+    code.comment('Convertir float a string')
+    // No necesitamos mover FA0 a otro registro, ya está en FA0
+
+    code.addLabel(floatCase)
+    code.add(r.T1, r.ZERO, r.HP)
+
+    // Si es negativo, poner el signo '-'
+    code.flt(r.T0, r.FA0, r.FT0)  // Asumimos que FT0 es 0.0
+    code.beqz(r.T0, floatLoop)
+    code.li(r.T2, 45)    // ASCII de '-'
+    code.sb(r.T2, r.HP)
+    code.addi(r.HP, r.HP, 1)
+    code.fneg(r.FA0, r.FA0)   // Hacer positivo el número
+
+    code.addLabel(floatLoop)
+    // Multiplicar por 10 para mover el punto decimal
+    code.li(r.T2, 10)
+    code.fcvtsw(r.FT2, r.T2)
+    code.fmul(r.FA0, r.FA0, r.FT2)
+
+    // Obtener la parte entera
+    code.fmvxw(r.T3, r.FA0)
+    
+    // Convertir dígito a ASCII y guardarlo
+    code.addi(r.T3, r.T3, 48)   // ASCII '0' = 48
+    code.sb(r.T3, r.HP)
+    code.addi(r.HP, r.HP, 1)
+
+    // Actualizar FA0 para la siguiente iteración
+    code.fcvtsw(r.FT1, r.T3)
+    code.fsub(r.FA0, r.FA0, r.FT1)
+
+    // Verificar si hemos terminado (si FA0 == 0)
+    code.feq(r.T0, r.FA0, r.FT0)  // Asumimos que FT0 es 0.0
+    code.bnez(r.T0, floatReverse)
+    
+    // Verificar si hemos procesado suficientes dígitos (por ejemplo, 6)
+    code.addi(r.T4, r.T4, 1)
+    code.li(r.T5, 6)
+    code.blt(r.T4, r.T5, floatLoop)
+
+    // Revertir los dígitos
+    code.addLabel(floatReverse)
+    code.add(r.T2, r.ZERO, r.HP)  // T2 = fin
+    code.addi(r.T2, r.T2, -1)     // Ajustar para último dígito
+
+    code.addLabel(floatReverse)  // Cambiado de code.label a code.addLabel
+    code.bge(r.T1, r.T2, floatEnd)
+    code.lb(r.T3, r.T1, 0)      // Cargar dígito del inicio
+    code.lb(r.T4, r.T2, 0)      // Cargar dígito del final
+    code.sb(r.T4, r.T1, 0)      // Guardar dígito del final al inicio
+    code.sb(r.T3, r.T2, 0)      // Guardar dígito del inicio al final
+    code.addi(r.T1, r.T1, 1)    // Mover inicio hacia adelante
+    code.addi(r.T2, r.T2, -1)   // Mover final hacia atrás
+    code.j(floatReverse)
+
+    code.addLabel(floatEnd)
+    code.j(endFunction)
+
+    // Fin de la función
+    code.addLabel(endFunction)
+    code.comment('Agregando el caracter nulo al final')
+    code.sb(r.ZERO, r.HP, 0)
+    code.addi(r.HP, r.HP, 1)
+}
+
 export const Constructores = {
     ConcatenarString: ConcatenarString,
     CompararString: CompararString,
@@ -340,5 +420,6 @@ export const Constructores = {
     toUpperCase: toUpperCase,
     parseInt: parseInt,
     parseFloat: parseFloat,
-    toString: toString
+    toString: toString,
+    floatToString: floatToString
 }
