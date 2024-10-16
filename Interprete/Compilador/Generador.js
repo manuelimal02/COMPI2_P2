@@ -275,6 +275,22 @@ export class Generador {
         this.instrucciones.push(new Instruction('bne', rs1, rs2, label))
     }
 
+    bgez(rs1, label) {
+        this.instrucciones.push(new Instruction('bgez', rs1, label))
+    }
+
+    neg(rd, rs1) {
+        this.instrucciones.push(new Instruction('neg', rd, rs1))
+    }
+
+    fmvwx(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.x.w', rd, rs1))
+    }
+
+    fmvxw(rd, rs1) {
+        this.instrucciones.push(new Instruction('fmv.x.w', rd, rs1))
+    }
+
     bnez(rs1, label) {
         this.instrucciones.push(new Instruction('bnez', rs1, label))
     }

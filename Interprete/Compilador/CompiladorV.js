@@ -454,7 +454,24 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitToString']}
      */ 
     visitToString(node) {
-        console.log('ENTRA A TO STRING');
+        node.Argumento.accept(this);
+        const esFlotante = this.code.getTopObject().type === 'float';
+        const valor = this.code.popObject(esFlotante ? f.FA0 : r.A0);
+        if (valor.type === 'float') {
+            console.log('To String Con Float')
+        } else {
+            if (valor.type === 'int') {
+                this.code.li(r.A1, 1);
+            } else if (valor.type === 'boolean') {
+                this.code.li(r.A1, 2);
+            } else if (valor.type === 'char') {
+                this.code.li(r.A1, 3);
+            } else if (valor.type === 'string') {
+                this.code.li(r.A1, 4);
+            }
+            this.code.callBuiltin('toString');
+        }
+        this.code.pushObject({ type: 'string', length: 4})
     }
 
     /**
