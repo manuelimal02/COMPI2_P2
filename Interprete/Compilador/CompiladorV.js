@@ -538,7 +538,7 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitDeclaracionArreglo2']}
      */ 
     visitDeclaracionArreglo2(node) {
-        this.code.comment('Inicio-Declaracion-Arreglo');
+        this.code.comment('Inicio-Declaracion-Arreglo-Valor-Por-Defecto');
 
         const NombreArreglo = node.id;
         const TipoArreglo = node.tipo1;
@@ -576,14 +576,46 @@ export class Compilador extends BaseVisitor {
         this.code.pushObject({ type: TipoArreglo, length: TamanioArreglo * 4 });
         this.code.tagObject(NombreArreglo);
 
-        this.code.comment('Fin-Declaracion-Arreglo');
+        this.code.comment('Fin-Declaracion-Arreglo-Valor-Por-Defecto');
     }
 
     /**
      * @type {BaseVisitor['visitDeclaracionArreglo3']}
      */ 
     visitDeclaracionArreglo3(node) {
-    
+        this.code.comment('Inicio-Declaracion-Arreglo-Copia');
+        const NombreArreglo1 = node.id1;
+        const TipoArreglo = node.tipo;
+        const NombreArreglo2 = node.id2;
+        const [offset, VariableObjeto] = this.code.getObject(node.id2);
+
+        this.code.li(r.T1, VariableObjeto.length);
+        this.code.la(r.T0, NombreArreglo2);
+
+        this.code.NuevoArreglo(NombreArreglo1, TipoArreglo, VariableObjeto.length);
+        this.code.la(r.T2, NombreArreglo1);
+        this.code.li(r.T3, 0);  
+        
+        const BucleLabel = this.code.getLabel();
+        const FinalLabel = this.code.getLabel();
+
+        this.code.addLabel(BucleLabel);
+        this.code.beq(r.T3, r.T1, FinalLabel);
+
+        this.code.lw(r.T4, r.T0, 0);
+        this.code.sw(r.T4, r.T2, 0);
+
+        this.code.addi(r.T3, r.T3, 1);
+        this.code.addi(r.T0, r.T0, 4);
+        this.code.addi(r.T2, r.T2, 4);
+
+        this.code.j(BucleLabel);
+        this.code.addLabel(FinalLabel);
+
+        this.code.pushObject({ type: TipoArreglo, length: VariableObjeto.length * 4 });
+        this.code.tagObject(NombreArreglo1);
+
+        this.code.comment('Fin-Declaracion-Arreglo-Copia');
     }
 
     /**
