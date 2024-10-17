@@ -619,7 +619,7 @@ export class Compilador extends BaseVisitor {
         this.code.j(BucleLabel);
         this.code.addLabel(FinalLabel);
 
-        this.code.pushObject({ type: TipoArreglo, length: VariableObjeto.length * 4 });
+        this.code.pushObject({ type: TipoArreglo, length: VariableObjeto.length});
         this.code.tagObject(NombreArreglo1);
 
         this.code.comment('Fin-Declaracion-Arreglo-Copia');
@@ -707,7 +707,7 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitForEach']}
      */
     visitForEach(node) {
-    
+        
     }
 
     /**
