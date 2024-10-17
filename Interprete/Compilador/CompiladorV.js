@@ -664,13 +664,9 @@ export class Compilador extends BaseVisitor {
 
         this.code.la(r.T5, node.id);
         this.code.li(r.T1,4);   
-
         this.code.mul(r.T0, r.T0, r.T1);
-
         this.code.add(r.T2, r.T5, r.T0);
-
         this.code.lw(r.T3,r.T2,0);
-
         this.code.push(r.T3);
 
         this.code.pushObject({ ...ArregloObjeto, id: undefined });
@@ -707,7 +703,54 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitForEach']}
      */
     visitForEach(node) {
-        
+        this.code.comment('Inicio-Foreach');
+
+        const InicioForLabel = this.code.getLabel();
+        const ContinueLabelPrevio = this.ContinueLabel;
+        this.ContinueLabel = InicioForLabel;
+
+        const FinalForLabel = this.code.getLabel();
+        const BreakLabelPrevio = this.BreakLabel;
+        this.BreakLabel = FinalForLabel;
+
+        const ReferenciaArreglo = {id: node.arreglo};
+        this.visitReferenciaVariable(ReferenciaArreglo);
+
+        const [Objeto, ArregloObjeto] = this.code.getObject(node.arreglo);
+        const length = ArregloObjeto.length / 4;
+
+        this.code.li(r.T2, length);
+        this.code.li(r.T5, 0);  
+        this.code.newScope();
+        this.code.tagObject(node.id);
+        this.code.addLabel(InicioForLabel);
+        this.code.slt(r.T0, r.T5, r.T2);
+        this.code.beq(r.T0, r.ZERO, FinalForLabel);
+
+        this.code.la(r.T4, node.arreglo);
+        this.code.li(r.T3, 4);
+        this.code.mul(r.T3, r.T5, r.T3);
+        this.code.add(r.T4, r.T4, r.T3);
+        this.code.lw(r.T0, r.T4);
+
+        const [offset, VariableObjeto] = this.code.getObject(node.id);
+        this.code.addi(r.T3, r.SP, offset);
+        this.code.sw(r.T0, r.T3);
+
+        node.sentencias.accept(this);
+
+        this.code.addi(r.T5, r.T5, 1);
+        this.code.j(InicioForLabel);
+        this.code.addLabel(FinalForLabel);
+
+        const BytesEliminados = this.code.endScope();
+        if (BytesEliminados > 0) {
+            this.code.addi(r.SP, r.SP, BytesEliminados);
+        }
+
+        this.ContinueLabel = ContinueLabelPrevio;
+        this.BreakLabel = BreakLabelPrevio;
+        this.code.comment('Fin-Foreach');
     }
 
     /**
