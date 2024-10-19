@@ -1,10 +1,10 @@
-export const numberToF32 = (number) => {
-    const buffer = new ArrayBuffer(4);
-    const float32arr = new Float32Array(buffer);
-    const uint32arr = new Uint32Array(buffer);
-    float32arr[0] = number;
+export const DecimalComoF32 = (Decimal) => {
+    const Buffer = new ArrayBuffer(4);
+    const ArregloFloat32 = new Float32Array(Buffer);
+    const ArregloInt32 = new Uint32Array(Buffer);
+    ArregloFloat32[0] = Decimal;
 
-    const integer = uint32arr[0];
-    const hexRepr = integer.toString(16);
-    return '0x' + hexRepr;
+    const ParteEntera = ArregloInt32[0];
+    const RepresentacionHexadecimal  = ParteEntera.toString(16);
+    return '0x' + RepresentacionHexadecimal ;
 }

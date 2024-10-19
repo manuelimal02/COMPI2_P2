@@ -162,75 +162,75 @@ const parseInt = (code) => {
  * @param {Generador} code
  */
 const parseFloat = (code) => {
-        const InicioLabel = code.getLabel()
-        const FinalLabel = code.getLabel()
-        const NegativoLabel = code.getLabel()
-        const FraccionValorLabel = code.getLabel()
-        const FraccionBucleLabel = code.getLabel()
-        
-        code.li(r.T0, 0)       
-        code.li(r.T3, 0)       
-        code.li(r.T4, 1)       
-        code.fmvs(f.FT0, r.ZERO)    
-        code.li(r.T5, 0)       
-        
-        code.lb(r.T1, r.A0)
-        code.li(r.T2, 45) 
-        code.beq(r.T1, r.T2, NegativoLabel)
-        code.j(InicioLabel)
-        
-        code.addLabel(NegativoLabel)
-        code.li(r.T3, 1) 
-        code.addi(r.A0, r.A0, 1)
-        
-        code.addLabel(InicioLabel)
-        code.lb(r.T1, r.A0)
-        
-        code.beqz(r.T1, FinalLabel)
-        code.li(r.T2, 46)
-        code.beq(r.T1, r.T2, FraccionValorLabel)
-        
-        code.addi(r.T1, r.T1, -48) 
-        code.li(r.T2, 10)
-        code.mul(r.T0, r.T0, r.T2) 
-        code.add(r.T0, r.T0, r.T1) 
-        code.addi(r.A0, r.A0, 1)     
-        code.j(InicioLabel)
-        
-        code.addLabel(FraccionValorLabel)
-        code.addi(r.A0, r.A0, 1) 
-        
-        code.addLabel(FraccionBucleLabel)
-        code.lb(r.T1, r.A0)
-        code.beqz(r.T1, FinalLabel) 
-        
-        code.addi(r.T1, r.T1, -48) 
-        
-        code.li(r.T5, 10)
-        code.mul(r.T4, r.T4, r.T5)
-        
-        code.fcvtsw(f.FT1, r.T1) 
-        code.fcvtsw(f.FT2, r.T4) 
-        
-        code.fdiv(f.FT1, f.FT1, f.FT2) 
-        code.fadd(f.FT0, f.FT0, f.FT1) 
-        
-        code.addi(r.A0, r.A0, 1) 
-        code.j(FraccionBucleLabel)
-        
-        code.addLabel(FinalLabel)
-        
-        code.beqz(r.T3, 'fin')
-        code.sub(r.T0, r.ZERO, r.T0) 
-        code.fneg(f.FT0, f.FT0)
-        
-        code.addLabel('fin')
-        
-        code.fcvtsw(f.FT2, r.T0) 
-        code.fadd(f.FT0, f.FT0, f.FT2) 
-        
-        code.fmvx(r.A0, f.FT0)
-    }
+    const InicioLabel = code.getLabel()
+    const FinalLabel = code.getLabel()
+    const NegativoLabel = code.getLabel()
+    const FraccionValorLabel = code.getLabel()
+    const FraccionBucleLabel = code.getLabel()
+    
+    code.li(r.T0, 0)       
+    code.li(r.T3, 0)       
+    code.li(r.T4, 1)       
+    code.fmvs(f.FT0, r.ZERO)    
+    code.li(r.T5, 0)       
+    
+    code.lb(r.T1, r.A0)
+    code.li(r.T2, 45) 
+    code.beq(r.T1, r.T2, NegativoLabel)
+    code.j(InicioLabel)
+    
+    code.addLabel(NegativoLabel)
+    code.li(r.T3, 1) 
+    code.addi(r.A0, r.A0, 1)
+    
+    code.addLabel(InicioLabel)
+    code.lb(r.T1, r.A0)
+    
+    code.beqz(r.T1, FinalLabel)
+    code.li(r.T2, 46)
+    code.beq(r.T1, r.T2, FraccionValorLabel)
+    
+    code.addi(r.T1, r.T1, -48) 
+    code.li(r.T2, 10)
+    code.mul(r.T0, r.T0, r.T2) 
+    code.add(r.T0, r.T0, r.T1) 
+    code.addi(r.A0, r.A0, 1)     
+    code.j(InicioLabel)
+    
+    code.addLabel(FraccionValorLabel)
+    code.addi(r.A0, r.A0, 1) 
+    
+    code.addLabel(FraccionBucleLabel)
+    code.lb(r.T1, r.A0)
+    code.beqz(r.T1, FinalLabel) 
+    
+    code.addi(r.T1, r.T1, -48) 
+    
+    code.li(r.T5, 10)
+    code.mul(r.T4, r.T4, r.T5)
+    
+    code.fcvtsw(f.FT1, r.T1) 
+    code.fcvtsw(f.FT2, r.T4) 
+    
+    code.fdiv(f.FT1, f.FT1, f.FT2) 
+    code.fadd(f.FT0, f.FT0, f.FT1) 
+    
+    code.addi(r.A0, r.A0, 1) 
+    code.j(FraccionBucleLabel)
+    
+    code.addLabel(FinalLabel)
+    
+    code.beqz(r.T3, 'fin')
+    code.sub(r.T0, r.ZERO, r.T0) 
+    code.fneg(f.FT0, f.FT0)
+    
+    code.addLabel('fin')
+    
+    code.fcvtsw(f.FT2, r.T0) 
+    code.fadd(f.FT0, f.FT0, f.FT2) 
+    
+    code.fmvx(r.A0, f.FT0)
+}
 
 /**
  * @param {Generador} code

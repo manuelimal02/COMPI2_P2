@@ -1,9 +1,11 @@
 import { BaseVisitor } from "../Visitor/Visitor.js";
+import { ContextoEjecucion } from "./ContextoEjecucion.js";
 import { Registros as r } from "./Registros.js";
 import { RegistrosFlotantes as f } from "./Registros.js";
 import { Generador } from "./Generador.js";
 import { OperacionBinariaHandler } from "./Binaria.js";
 import { OperacionUnariaHandler } from "./Unaria.js";
+import { ReferenciaVariable } from "../Nodo/Nodos.js";
 
 export class Compilador extends BaseVisitor {
 
@@ -12,6 +14,11 @@ export class Compilador extends BaseVisitor {
         this.code = new Generador();
         this.ContinueLabel = null;
         this.BreakLabel = null;
+        this.returnLabel = null;
+
+        this.functionMetada = {}
+        this.insideFunction = false;
+        this.frameDclIndex = 0;
     }
 
     /**
@@ -116,6 +123,21 @@ export class Compilador extends BaseVisitor {
         this.code.comment(`Inicio-Declaracion-Variable`);
         if (node.expresion) {
             node.expresion.accept(this);
+
+            if (this.insideFunction) {
+                const localObject = this.code.getFrameLocal(this.frameDclIndex);
+                const valueObj = this.code.popObject(r.T0);
+    
+                this.code.addi(r.T1, r.FP, -localObject.offset * 4);
+                this.code.sw(r.T0, r.T1);
+    
+                // ! inferir el tipo
+                localObject.type = valueObj.type;
+                this.frameDclIndex++;
+    
+                return
+            }
+
         } else {
             switch (node.tipo) {
                 case 'int':
@@ -146,6 +168,15 @@ export class Compilador extends BaseVisitor {
         this.code.comment(`Referencia-Variable ${node.id}: ${JSON.stringify(this.code.objectStack)}`);
         const [offset, VariableObjeto] = this.code.getObject(node.id);
         const EsFlotante = VariableObjeto.type === 'float';
+
+        if (this.insideFunction) {
+            this.code.addi(r.T1, r.FP, -VariableObjeto.offset * 4);
+            this.code.lw(r.T0, r.T1);
+            this.code.push(r.T0);
+            this.code.pushObject({ ...VariableObjeto, id: undefined });
+            return
+        }     
+
         this.code.addi(r.T0, r.SP, offset);
         if (EsFlotante) {
             this.code.flw(f.FT0, r.T0);
@@ -204,6 +235,13 @@ export class Compilador extends BaseVisitor {
         }
         const ValorObjeto = this.code.popObject(r.T0);
         const [offset, VariableObjeto] = this.code.getObject(node.id);
+
+        if (this.insideFunction) {
+            this.code.addi(r.T1, r.FP, -VariableObjeto.offset * 4); // ! REVISAR
+            this.code.sw(r.T0, r.T1); // ! revisar
+            return
+        }
+
         this.code.addi(r.T1, r.SP, offset);
         this.code.sw(r.T0, r.T1);
         VariableObjeto.type = ValorObjeto.type;
@@ -426,13 +464,80 @@ export class Compilador extends BaseVisitor {
     * @type {BaseVisitor['visitReturn']}
     */
     visitReturn(node) {
+        this.code.comment('Return');
+
+        if (node.expresion) {
+            node.expresion.accept(this);
+            this.code.popObject(r.A0);
+
+            const frameSize = this.functionMetada[this.insideFunction].frameSize
+            const returnOffest = frameSize - 1;
+            this.code.addi(r.T0, r.FP, -returnOffest * 4)
+            this.code.sw(r.A0, r.T0)
+        }
+
+        this.code.j(this.returnLabel);
+        this.code.comment('Fin-Return');
     }
 
     /**
      * @type {BaseVisitor['visitLlamada']}
      */
     visitLlamada(node) {
-    
+        if (!(node.callee instanceof ReferenciaVariable)) return
+
+        const nombreFuncion = node.callee.id;
+
+        this.code.comment(`Llamada a funcion ${nombreFuncion}`);
+
+        const etiquetaRetornoLlamada = this.code.getLabel();
+
+        // 1. Guardar los argumentos
+        node.argumentos.forEach((arg, index) => {
+            arg.accept(this)
+            this.code.popObject(r.T0)
+            this.code.addi(r.T1, r.SP, -4 * (3 + index)) // ! REVISAR
+            this.code.sw(r.T0, r.T1)
+        });
+
+        // Calcular la dirección del nuevo FP en T1
+        this.code.addi(r.T1, r.SP, -4)
+
+        // Guardar direccion de retorno
+        this.code.la(r.T0, etiquetaRetornoLlamada)
+        this.code.push(r.T0)
+
+        // Guardar el FP
+        this.code.push(r.FP)
+        this.code.addi(r.FP, r.T1, 0)
+
+        // colocar el SP al final del frame
+        // this.code.addi(r.SP, r.SP, -(this.functionMetada[nombreFuncion].frameSize - 4))
+        this.code.addi(r.SP, r.SP, -(node.argumentos.length * 4)) // ! REVISAR
+
+
+        // Saltar a la función
+        this.code.j(nombreFuncion)
+        this.code.addLabel(etiquetaRetornoLlamada)
+
+        // Recuperar el valor de retorno
+        const frameSize = this.functionMetada[nombreFuncion].frameSize
+        const returnSize = frameSize - 1;
+        this.code.addi(r.T0, r.FP, -returnSize * 4)
+        this.code.lw(r.A0, r.T0)
+
+        // Regresar el FP al contexto de ejecución anterior
+        this.code.addi(r.T0, r.FP, -4)
+        this.code.lw(r.FP, r.T0)
+
+        // Regresar mi SP al contexto de ejecución anterior
+        this.code.addi(r.SP, r.SP, (frameSize - 1) * 4)
+
+
+        this.code.push(r.A0)
+        this.code.pushObject({ type: this.functionMetada[nombreFuncion].returnType, length: 4 })
+
+        this.code.comment(`Fin de llamada a funcion ${nombreFuncion}`);
     }
 
     /**
@@ -629,6 +734,56 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitIndexArreglo']}
      */
     visitIndexArreglo(node) {
+        this.code.comment('Inicio-IndexOf-Arreglo');
+        const Objeto = this.code.getObject(node.id);  
+        node.index.accept(this);
+        const EsFlotante = this.code.getTopObject().type === "float"
+        this.code.popObject( EsFlotante ? f.FT1 : r.T1)
+        const IncioBucle1Label = this.code.getLabel()
+        const FinalBucleLabel = this.code.getLabel()
+        const IndexBusquedaLabel = this.code.getLabel()
+        const IndexNoEncontradoLabel = this.code.getLabel()
+        this.code.la(r.T5, Objeto[1].id)
+        this.code.li(r.T2, Objeto[1].length / 4)
+        this.code.li(r.T3, 0)
+        
+        this.code.comment('Incio-Busqueda-Elemnto')
+        if(EsFlotante) {
+            this.code.addLabel(IncioBucle1Label)
+            this.code.beq(r.T2, r.ZERO, IndexNoEncontradoLabel)
+            this.code.flw(f.FT2, r.T5, 0)
+            this.code.feq(r.T0, f.FT1, f.FT2)
+            this.code.bnez(r.T0, IndexBusquedaLabel)
+            this.code.addi(r.T5, r.T5, 4)
+            this.code.addi(r.T3, r.T3, 1)
+            this.code.addi(r.T2, r.T2, -1)
+            this.code.j(IncioBucle1Label)
+            this.code.addLabel(IndexBusquedaLabel)
+            this.code.push(r.T3)
+            this.code.j(FinalBucleLabel)
+            this.code.addLabel(IndexNoEncontradoLabel)
+            this.code.li(r.T0, -1)
+            this.code.push(r.T0)
+        }else {
+            this.code.addLabel(IncioBucle1Label)
+            this.code.beq(r.T2, r.ZERO, IndexNoEncontradoLabel)
+            this.code.lw(r.T4, r.T5, 0)
+            this.code.beq(r.T4, r.T1, IndexBusquedaLabel)
+            this.code.addi(r.T5, r.T5, 4)
+            this.code.addi(r.T3, r.T3, 1)
+            this.code.addi(r.T2, r.T2, -1)
+            this.code.j(IncioBucle1Label)
+            this.code.addLabel(IndexBusquedaLabel)
+            this.code.push(r.T3)
+            this.code.j(FinalBucleLabel)
+            this.code.addLabel(IndexNoEncontradoLabel)
+            this.code.li(r.T0, -1)
+            this.code.push(r.T0)
+        }
+        this.code.comment('Fin-Busqueda-Elemnto')
+        this.code.addLabel(FinalBucleLabel)
+        this.code.pushObject({ type: 'int', length: 4 });
+        this.code.comment('Fin-Index-Arreglo')
     }
 
     /**
@@ -757,6 +912,71 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitFuncionForanea']}
      */
     visitFuncionForanea(node) {
-    
+        const baseSize = 2; // | ra | fp |
+
+        const paramSize = node.parametros.length; // | ra | fp | p1 | p2 | ... | pn |
+
+        const frameVisitor = new ContextoEjecucion(baseSize + paramSize);
+        node.bloque.accept(frameVisitor);
+        const localFrame = frameVisitor.frame;
+        const localSize = localFrame.length; // | ra | fp | p1 | p2 | ... | pn | l1 | l2 | ... | ln |
+
+        const returnSize = 1; // | ra | fp | p1 | p2 | ... | pn | l1 | l2 | ... | ln | rv |
+
+        const totalSize = baseSize + paramSize + localSize + returnSize;
+        this.functionMetada[node.id] = {
+            frameSize: totalSize,
+            returnType: node.tipo,
+        }
+
+        const instruccionesDeMain = this.code.instrucciones;
+        const instruccionesDeDeclaracionDeFuncion = []
+        this.code.instrucciones = instruccionesDeDeclaracionDeFuncion;
+
+        node.parametros.forEach((param, index) => {
+            this.code.pushObject({
+                id: param.id,
+                type: param.tipo,
+                length: 4,
+                offset: baseSize + index
+            })
+        });
+
+        localFrame.forEach(variableLocal => {
+            this.code.pushObject({
+                ...variableLocal,
+                length: 4,
+                type: 'local',
+            })
+        });
+
+        this.insideFunction = node.id;
+        this.frameDclIndex = 0;
+        this.returnLabel = this.code.getLabel();
+
+        this.code.comment(`Declaracion de funcion ${node.id}`);
+        this.code.addLabel(node.id);
+
+        node.bloque.accept(this);
+
+        this.code.addLabel(this.returnLabel);
+
+        this.code.add(r.T0, r.ZERO, r.FP);
+        this.code.lw(r.RA, r.T0);
+        this.code.jalr(r.ZERO, r.RA, 0);
+        this.code.comment(`Fin de declaracion de funcion ${node.id}`);
+
+        // Limpiar metadatos
+        for (let i = 0; i < paramSize + localSize; i++) {
+            this.code.objectStack.pop(); // ! aqui no retrocedemos el SP, hay que hacerlo más adelanto
+        }
+
+        this.code.instrucciones = instruccionesDeMain
+
+        instruccionesDeDeclaracionDeFuncion.forEach(instruccion => {
+            this.code.instrucciones_funciones.push(instruccion);
+        });
+
+        this.insideFunction = false;
     }
 } 

@@ -1,11 +1,11 @@
-export const stringTo1ByteArray = (str) => {
-    const resultado = []
-    let elementIndex = 0
+export const CadenaComoArregloBytes = (str) => {
+    const Arreglo = []
+    let IndiceCaracter = 0
 
-    while (elementIndex < str.length) {
-        resultado.push(str.charCodeAt(elementIndex))
-        elementIndex++
+    while (IndiceCaracter < str.length) {
+        Arreglo.push(str.charCodeAt(IndiceCaracter))
+        IndiceCaracter++
     }
-    resultado.push(0)
-    return resultado;
+    Arreglo.push(0)
+    return Arreglo;
 }

@@ -1,6 +1,6 @@
 import { Registros as r } from "./Registros.js";
-import { stringTo1ByteArray } from "./Cadena.js";
-import { numberToF32 } from "./Decimal.js";
+import { CadenaComoArregloBytes } from "./Cadena.js";
+import { DecimalComoF32 } from "./Decimal.js";
 import { Constructores } from "./Contructores.js";
 
 class Instruction {
@@ -26,6 +26,7 @@ export class Generador {
 
     constructor() {
         this.instrucciones = []
+        this.instrucciones_funciones = []
         this.objectStack = []
         this.depth = 0
         this._usedBuiltins = new Set()
@@ -89,6 +90,10 @@ export class Generador {
 
     xori(rd, rs1, inmediato) {
         this.instrucciones.push(new Instruction('xori', rd, rs1, inmediato))
+    }
+
+    jalr(rd, rs1, imm) {
+        this.instrucciones.push(new Instruction('jalr', rd, rs1, imm))
     }
 
     jal(label) {
@@ -435,13 +440,13 @@ export class Generador {
                 length = 4;
                 break;
             case 'float':
-                const float32 = numberToF32(object.valor);
+                const float32 = DecimalComoF32(object.valor);
                 this.li(r.T0, float32);
                 this.push(r.T0);
                 length = 4;
                 break;
             case 'string':
-                const stringArray = stringTo1ByteArray(object.valor);
+                const stringArray = CadenaComoArregloBytes(object.valor);
                 this.push(r.HP);
                 stringArray.forEach((charCode) => {
                     this.li(r.T0, charCode);
@@ -468,7 +473,6 @@ export class Generador {
     }
 
     pushObject(object) {
-        //this.objectStack.push(object);
         this.objectStack.push({
             ...object,
             depth: this.depth,
@@ -542,10 +546,19 @@ export class Generador {
         return this.objectStack[this.objectStack.length - 1];
     }
 
+    getFrameLocal(index) {
+        const frameRelativeLocal = this.objectStack.filter(obj => obj.type === 'local');
+        return frameRelativeLocal[index];
+    }
+
     toString() {
         this.comment('Fin-Programa')
         this.endProgram()
         this.comment('Constructores')
+        
+        this.comment('Funciones-Foraneas')
+        this.instrucciones_funciones.forEach(instruccion => this.instrucciones.push(instruccion))
+
         Array.from(this._usedBuiltins).forEach(builtinName => {
             this.addLabel(builtinName)
             Constructores[builtinName](this)
