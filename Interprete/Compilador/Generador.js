@@ -241,6 +241,10 @@ export class Generador {
         this.instrucciones.push(new Instruction('fneg.s', rd, rs))
     }
 
+    fcvtws (rd, rs1) {
+        this.instrucciones.push(new Instruction('fcvt.w.s', rd, rs1))
+    }
+    
     //--------------------------------------------
     // Instrucciones Adicionales
         

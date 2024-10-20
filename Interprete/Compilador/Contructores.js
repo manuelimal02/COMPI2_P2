@@ -40,24 +40,24 @@ export const CompararString = (code) => {
     code.mv(r.A0, r.T0);
     code.mv(r.A1, r.T1);
     
-    const loopLabel = code.getLabel();
-    const notEqualLabel = code.getLabel();
-    const equalLabel = code.getLabel();
+    const BucleLabel = code.getLabel();
+    const NoIgualLabel = code.getLabel();
+    const IgualLabel = code.getLabel();
 
-    code.addLabel(loopLabel);
+    code.addLabel(BucleLabel);
     code.lb(r.T2, r.A0);
     code.lb(r.T3, r.A1);
-    code.bne(r.T2, r.T3, notEqualLabel);
-    code.beq(r.T2, r.ZERO, equalLabel);
+    code.bne(r.T2, r.T3, NoIgualLabel);
+    code.beq(r.T2, r.ZERO, IgualLabel);
     code.addi(r.A0, r.A0, 1);
     code.addi(r.A1, r.A1, 1);
-    code.j(loopLabel);
+    code.j(BucleLabel);
 
-    code.addLabel(notEqualLabel);
+    code.addLabel(NoIgualLabel);
     code.li(r.T0, 0);
     code.ret();
 
-    code.addLabel(equalLabel);
+    code.addLabel(IgualLabel);
     code.li(r.T0, 1);
     code.ret();
 }
@@ -94,7 +94,7 @@ export const toLowerCase = (code) => {
 const toUpperCase = (code) => {
     const IncioLabel = code.getLabel();
     const BucleLabel = code.getLabel();
-    const skipUpperLabel = code.getLabel();
+    const SaltarCaracter = code.getLabel();
     code.pop(r.T0);
     code.push(r.T0);
     code.addLabel(BucleLabel);
@@ -103,12 +103,12 @@ const toUpperCase = (code) => {
     code.li(r.T2, 97);
     code.li(r.T3, 122);
     code.slt(r.T4, r.T1, r.T2);
-    code.bnez(r.T4, skipUpperLabel);
+    code.bnez(r.T4, SaltarCaracter);
     code.slt(r.T4, r.T3, r.T1);
-    code.bnez(r.T4, skipUpperLabel);
+    code.bnez(r.T4, SaltarCaracter);
     code.addi(r.T1, r.T1, -32);
     code.sb(r.T1, r.T0);
-    code.addLabel(skipUpperLabel);
+    code.addLabel(SaltarCaracter);
     code.addi(r.T0, r.T0, 1);
     code.j(BucleLabel);
     code.addLabel(IncioLabel);
@@ -337,80 +337,73 @@ export const toString = (code) => {
  * @param {Generador} code
  */
 export const floatToString = (code) => {
-    // FA0 -> valor a convertir (float)
-    code.comment('Guardando en el stack la dirección en heap del resultado')
     code.push(r.HP);
-
-    const endFunction = code.getLabel()
-    const floatCase = code.getLabel()
-    const floatLoop = code.getLabel()
-    const floatReverse = code.getLabel()
-    const floatEnd = code.getLabel()
-
-    code.comment('Convertir float a string')
-    // No necesitamos mover FA0 a otro registro, ya está en FA0
-
-    code.addLabel(floatCase)
-    code.add(r.T1, r.ZERO, r.HP)
-
-    // Si es negativo, poner el signo '-'
-    code.flt(r.T0, r.FA0, r.FT0)  // Asumimos que FT0 es 0.0
-    code.beqz(r.T0, floatLoop)
-    code.li(r.T2, 45)    // ASCII de '-'
-    code.sb(r.T2, r.HP)
-    code.addi(r.HP, r.HP, 1)
-    code.fneg(r.FA0, r.FA0)   // Hacer positivo el número
-
-    code.addLabel(floatLoop)
-    // Multiplicar por 10 para mover el punto decimal
-    code.li(r.T2, 10)
-    code.fcvtsw(r.FT2, r.T2)
-    code.fmul(r.FA0, r.FA0, r.FT2)
-
-    // Obtener la parte entera
-    code.fmvxw(r.T3, r.FA0)
+    const BucleIntFloatLabel = code.getLabel();
+    const ParteFloatLabel = code.getLabel();
+    const FinalParteFloatLabel = code.getLabel();
+    const RevertirIntLabel = code.getLabel();
+    const FinalFuncionLabel = code.getLabel();
+    const SaltarNegativoLabel = code.getLabel();
+    code.li(r.T2, 10);
+    code.fcvtws(r.T0, f.FT0);
+    code.flt(r.T5, f.FT0, f.FT3);
+    code.beqz(r.T5, SaltarNegativoLabel);
+    code.li(r.T3, 45);
+    code.sb(r.T3, r.HP);
+    code.addi(r.HP, r.HP, 1);
+    code.addLabel(SaltarNegativoLabel);
+    code.add(r.T1, r.ZERO, r.HP);
+    code.bnez(r.T0, BucleIntFloatLabel);
+    code.li(r.T3, 48); 
+    code.sb(r.T3, r.HP);
+    code.addi(r.HP, r.HP, 1);
+    code.j(FinalParteFloatLabel);
+    code.addLabel(BucleIntFloatLabel);
+    code.div(r.T4, r.T0, r.T2);  
+    code.rem(r.T3, r.T0, r.T2); 
+    code.div(r.T0, r.T0, r.T2); 
+    code.addi(r.T3, r.T3, 48); 
+    code.sb(r.T3, r.HP);
+    code.addi(r.HP, r.HP, 1); 
+    code.bnez(r.T0, BucleIntFloatLabel);
+    code.add(r.T2, r.ZERO, r.HP);
+    code.addi(r.T2, r.T2, -1);
+    code.addLabel(RevertirIntLabel);
+    code.bge(r.T1, r.T2, FinalParteFloatLabel);
+    code.lb(r.T3, r.T1);
+    code.lb(r.T4, r.T2);
+    code.sb(r.T4, r.T1);
+    code.sb(r.T3, r.T2);
+    code.addi(r.T1, r.T1, 1);
+    code.addi(r.T2, r.T2, -1);
+    code.j(RevertirIntLabel);
+    code.addLabel(FinalParteFloatLabel);
+    code.li(r.T3, 46); 
+    code.sb(r.T3, r.HP);
+    code.addi(r.HP, r.HP, 1);
     
-    // Convertir dígito a ASCII y guardarlo
-    code.addi(r.T3, r.T3, 48)   // ASCII '0' = 48
-    code.sb(r.T3, r.HP)
-    code.addi(r.HP, r.HP, 1)
-
-    // Actualizar FA0 para la siguiente iteración
-    code.fcvtsw(r.FT1, r.T3)
-    code.fsub(r.FA0, r.FA0, r.FT1)
-
-    // Verificar si hemos terminado (si FA0 == 0)
-    code.feq(r.T0, r.FA0, r.FT0)  // Asumimos que FT0 es 0.0
-    code.bnez(r.T0, floatReverse)
+    code.fcvtsw(f.FT1, r.T0); 
+    code.fsub(f.FT0, f.FT0, f.FT1); 
+    code.li(r.T1, 1000000); 
+    code.fcvtsw(f.FT1, r.T1); 
+    code.fmul(f.FT0, f.FT0, f.FT1); 
+    code.fcvtws(r.T0, f.FT0);  
     
-    // Verificar si hemos procesado suficientes dígitos (por ejemplo, 6)
-    code.addi(r.T4, r.T4, 1)
-    code.li(r.T5, 6)
-    code.blt(r.T4, r.T5, floatLoop)
-
-    // Revertir los dígitos
-    code.addLabel(floatReverse)
-    code.add(r.T2, r.ZERO, r.HP)  // T2 = fin
-    code.addi(r.T2, r.T2, -1)     // Ajustar para último dígito
-
-    code.addLabel(floatReverse)  // Cambiado de code.label a code.addLabel
-    code.bge(r.T1, r.T2, floatEnd)
-    code.lb(r.T3, r.T1, 0)      // Cargar dígito del inicio
-    code.lb(r.T4, r.T2, 0)      // Cargar dígito del final
-    code.sb(r.T4, r.T1, 0)      // Guardar dígito del final al inicio
-    code.sb(r.T3, r.T2, 0)      // Guardar dígito del inicio al final
-    code.addi(r.T1, r.T1, 1)    // Mover inicio hacia adelante
-    code.addi(r.T2, r.T2, -1)   // Mover final hacia atrás
-    code.j(floatReverse)
-
-    code.addLabel(floatEnd)
-    code.j(endFunction)
-
-    // Fin de la función
-    code.addLabel(endFunction)
-    code.comment('Agregando el caracter nulo al final')
-    code.sb(r.ZERO, r.HP, 0)
-    code.addi(r.HP, r.HP, 1)
+    code.li(r.T2, 10);
+    code.li(r.T4, 6);
+    
+    code.addLabel(ParteFloatLabel);
+    code.beqz(r.T4, FinalFuncionLabel);  
+    code.rem(r.T3, r.T0, r.T2);  
+    code.div(r.T0, r.T0, r.T2); 
+    code.addi(r.T3, r.T3, 48);  
+    code.sb(r.T3, r.HP);  
+    code.addi(r.HP, r.HP, 1);  
+    code.addi(r.T4, r.T4, -1); 
+    code.j(ParteFloatLabel);
+    code.addLabel(FinalFuncionLabel);
+    code.sb(r.ZERO, r.HP);
+    code.addi(r.HP, r.HP, 1);
 }
 
 export const Constructores = {
