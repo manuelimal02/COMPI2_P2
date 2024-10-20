@@ -29,13 +29,13 @@ export class Generador {
         this.instrucciones_funciones = []
         this.objectStack = []
         this.depth = 0
-        this._usedBuiltins = new Set()
-        this._labelCounter = 0;
-        this.ArregloConValor = [];
+        this._constructores = new Set()
+        this._contador_label = 0;
+        this.lista_arreglo = [];
     }
 
     getLabel() {
-        return `L${this._labelCounter++}`
+        return `L${this._contador_label++}`
     }
 
     addLabel(label) {
@@ -139,14 +139,6 @@ export class Generador {
         this.instrucciones.push(new Instruction('mv', rd, rs))
     }
 
-    sltu(rd, rs1, rs2) {
-        this.instrucciones.push(new Instruction('sltu', rd, rs1, rs2));
-    }
-
-    sltiu(rd, rs1, imm) {
-        this.instrucciones.push(new Instruction('sltiu', rd, rs1, imm));
-    }
-
     ecall() {
         this.instrucciones.push(new Instruction('ecall'))
     }
@@ -161,7 +153,6 @@ export class Generador {
         this.addi(r.SP, r.SP, 4)
     }
 
-    // FLOANTES
     pushFloat(rd = r.FT0) {
         this.addi(r.SP, r.SP, -4)
         this.fsw(rd, r.SP)
@@ -188,14 +179,9 @@ export class Generador {
         this.instrucciones.push(new Instruction('fdiv.s', rd, rs1, rs2))
     }
 
-    fli(rd, inmediato) {
-        this.instrucciones.push(new Instruction('fli.s', rd, inmediato))
-    }
-
     fmv(rd, rs) {
         this.instrucciones.push(new Instruction('fmv.w.x', rd, rs))
     }
-
 
     flw(rd, rs1, inmediato = 0) {
         this.instrucciones.push(new Instruction('flw', rd, `${inmediato}(${rs1})`))
@@ -245,9 +231,6 @@ export class Generador {
         this.instrucciones.push(new Instruction('fcvt.w.s', rd, rs1))
     }
     
-    //--------------------------------------------
-    // Instrucciones Adicionales
-        
     slti(rd, rs1, inmediato) {
         this.instrucciones.push(new Instruction('slti', rd, rs1, inmediato))
     }
@@ -348,19 +331,16 @@ export class Generador {
         this.instrucciones.push(new Instruction('bge', rs1, rs2, label))
     }
 
-    //--------------------------------------------
-
-    // Arreglo
     NuevoArreglo(id, tipo, tamano) {
-        this.ArregloConValor.push({ id, espaciomemoria:4*tamano });
+        this.lista_arreglo.push({ id, espaciomemoria:4*tamano });
     }
 
-    callBuiltin(builtinName) {
-        if (!Constructores[builtinName]) {
-            throw new Error(`Constructor ${builtinName} No Encontrado.`)
+    LlamarConstructor(NombreConstructor) {
+        if (!Constructores[NombreConstructor]) {
+            throw new Error(`Constructor ${NombreConstructor} No Encontrado.`)
         }
-        this._usedBuiltins.add(builtinName)
-        this.jal(builtinName)
+        this._constructores.add(NombreConstructor)
+        this.jal(NombreConstructor)
     }
 
     printInt(rd = r.A0) {
@@ -393,21 +373,19 @@ export class Generador {
     }
 
     printBoolean(rd = r.A0) {
-        const ContadorLabel = this._labelCounter++
+        const ContadorLabel = this._contador_label++
         if (rd !== r.A0) {
             this.push(r.A0)
             this.add(r.A0, rd, r.ZERO)
         } else {
             this.add(r.A0, rd, r.ZERO)
         }
-        this.beqz(r.A0, `Imprimir_Cadena_Falso${ContadorLabel}`)
 
+        this.beqz(r.A0, `Imprimir_Cadena_Falso${ContadorLabel}`)
         this.la(r.A0, "true_como_cadena")
         this.j(`Imprimir_String${ContadorLabel}`)
-
         this.addLabel(`Imprimir_Cadena_Falso${ContadorLabel}`)
         this.la(r.A0, "false_como_cadena")
-
         this.addLabel(`Imprimir_String${ContadorLabel}`)
         this.li(r.A7, 4)
         this.ecall()
@@ -543,7 +521,7 @@ export class Generador {
             }
             byteOffset += this.objectStack[i].length;
         }
-        throw new Error(`Variable ${id} Not found`);
+        throw new Error(`Variable ${id} No Encontrada.`);
     }
 
     getTopObject() {
@@ -563,12 +541,12 @@ export class Generador {
         this.comment('Funciones-Foraneas')
         this.instrucciones_funciones.forEach(instruccion => this.instrucciones.push(instruccion))
 
-        Array.from(this._usedBuiltins).forEach(builtinName => {
-            this.addLabel(builtinName)
-            Constructores[builtinName](this)
+        Array.from(this._constructores).forEach(NombreConstructor => {
+            this.addLabel(NombreConstructor)
+            Constructores[NombreConstructor](this)
             this.ret()
         })
-        return `.data\n${this.ArregloConValor.map((array, index) => `${array.id}: .space ${array.espaciomemoria}`).join('\n')}
+        return `.data\n${this.lista_arreglo.map((array, index) => `${array.id}: .space ${array.espaciomemoria}`).join('\n')}
                     true_como_cadena: .string "true"
                     false_como_cadena: .string "false"
                 heap:

@@ -105,7 +105,7 @@ export class OperacionBinariaHandler {
             this.code.add(r.A0, r.ZERO, r.T1);
             this.code.add(r.A1, r.ZERO, r.T0);
             // Llama a la función ConcatenarString
-            this.code.callBuiltin('ConcatenarString');
+            this.code.LlamarConstructor('ConcatenarString');
             // Retorna el tipo y longitud del resultado
             return { type: 'string', length: 4 };
         }  
@@ -260,7 +260,7 @@ export class OperacionBinariaHandler {
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string == string = boolean
             // LLama a la función CompararString
-            this.code.callBuiltin('CompararString');
+            this.code.LlamarConstructor('CompararString');
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };
         }
@@ -322,7 +322,7 @@ export class OperacionBinariaHandler {
         }
         if(this.izquierda.type === 'string' && this.derecha.type === 'string') {
             // string != string = boolean
-            this.code.callBuiltin('CompararString');
+            this.code.LlamarConstructor('CompararString');
             this.code.xori(r.T0, r.T0, 1);
             this.code.push(r.T0);
             return { type: 'boolean', length: 4 };

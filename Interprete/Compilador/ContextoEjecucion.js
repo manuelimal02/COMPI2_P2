@@ -2,11 +2,11 @@ import { BaseVisitor } from "../Visitor/Visitor.js";
 
 export class ContextoEjecucion extends BaseVisitor {
 
-    constructor(baseOffset) {
+    constructor(BaseOffset) {
         super();
-        this.frame = [];
-        this.localSize = 0;
-        this.baseOffset = baseOffset;
+        this.ContextoVisitor = [];
+        this.LocalTamano = 0;
+        this.BaseOffset = BaseOffset;
     }
 
     visitSentenciaExpresion(node) {
@@ -49,11 +49,11 @@ export class ContextoEjecucion extends BaseVisitor {
     * @type {BaseVisitor['visitDeclaracionVar']}
     */
     visitDeclaracionVar(node) {
-        this.frame.push({
+        this.ContextoVisitor.push({
             id: node.id,
-            offset: this.baseOffset + this.localSize,
+            offset: this.BaseOffset + this.LocalTamano,
         });
-        this.localSize += 1;
+        this.LocalTamano += 1;
     }
 
     visitReferenciaVariable(node) {

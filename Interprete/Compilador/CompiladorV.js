@@ -14,11 +14,11 @@ export class Compilador extends BaseVisitor {
         this.code = new Generador();
         this.ContinueLabel = null;
         this.BreakLabel = null;
-        this.returnLabel = null;
+        this.ReturnLabel = null;
 
-        this.functionMetada = {}
-        this.insideFunction = false;
-        this.frameDclIndex = 0;
+        this.FuncionForanea = {}
+        this.ExisteFuncion = false;
+        this.ContextoDeclaracionIndex = 0;
     }
 
     /**
@@ -124,17 +124,13 @@ export class Compilador extends BaseVisitor {
         if (node.expresion) {
             node.expresion.accept(this);
 
-            if (this.insideFunction) {
-                const localObject = this.code.getFrameLocal(this.frameDclIndex);
-                const valueObj = this.code.popObject(r.T0);
-    
-                this.code.addi(r.T1, r.FP, -localObject.offset * 4);
+            if (this.ExisteFuncion) {
+                const ObjetoLocal = this.code.getFrameLocal(this.ContextoDeclaracionIndex);
+                const ValorObjeto = this.code.popObject(r.T0);
+                this.code.addi(r.T1, r.FP, -ObjetoLocal.offset * 4);
                 this.code.sw(r.T0, r.T1);
-    
-                // ! inferir el tipo
-                localObject.type = valueObj.type;
-                this.frameDclIndex++;
-    
+                ObjetoLocal.type = ValorObjeto.type;
+                this.ContextoDeclaracionIndex++;
                 return
             }
 
@@ -169,7 +165,7 @@ export class Compilador extends BaseVisitor {
         const [offset, VariableObjeto] = this.code.getObject(node.id);
         const EsFlotante = VariableObjeto.type === 'float';
 
-        if (this.insideFunction) {
+        if (this.ExisteFuncion) {
             this.code.addi(r.T1, r.FP, -VariableObjeto.offset * 4);
             this.code.lw(r.T0, r.T1);
             this.code.push(r.T0);
@@ -236,9 +232,9 @@ export class Compilador extends BaseVisitor {
         const ValorObjeto = this.code.popObject(r.T0);
         const [offset, VariableObjeto] = this.code.getObject(node.id);
 
-        if (this.insideFunction) {
-            this.code.addi(r.T1, r.FP, -VariableObjeto.offset * 4); // ! REVISAR
-            this.code.sw(r.T0, r.T1); // ! revisar
+        if (this.ExisteFuncion) {
+            this.code.addi(r.T1, r.FP, -VariableObjeto.offset * 4);
+            this.code.sw(r.T0, r.T1);
             return
         }
 
@@ -465,18 +461,15 @@ export class Compilador extends BaseVisitor {
     */
     visitReturn(node) {
         this.code.comment('Return');
-
         if (node.expresion) {
             node.expresion.accept(this);
             this.code.popObject(r.A0);
-
-            const frameSize = this.functionMetada[this.insideFunction].frameSize
-            const returnOffest = frameSize - 1;
-            this.code.addi(r.T0, r.FP, -returnOffest * 4)
+            const TamanoContexto = this.FuncionForanea[this.ExisteFuncion].TamanoContexto
+            const RetornoOffset = TamanoContexto - 1;
+            this.code.addi(r.T0, r.FP, -RetornoOffset * 4)
             this.code.sw(r.A0, r.T0)
         }
-
-        this.code.j(this.returnLabel);
+        this.code.j(this.ReturnLabel);
         this.code.comment('Fin-Return');
     }
 
@@ -485,59 +478,41 @@ export class Compilador extends BaseVisitor {
      */
     visitLlamada(node) {
         if (!(node.callee instanceof ReferenciaVariable)) return
+    
+        this.code.comment(`Inicio-LLamada-Funcion-${node.callee.id}`);
+        const NombreFuncion = node.callee.id;
+        const RetornoLlamadaLabel = this.code.getLabel();
 
-        const nombreFuncion = node.callee.id;
-
-        this.code.comment(`Llamada a funcion ${nombreFuncion}`);
-
-        const etiquetaRetornoLlamada = this.code.getLabel();
-
-        // 1. Guardar los argumentos
         node.argumentos.forEach((arg, index) => {
             arg.accept(this)
             this.code.popObject(r.T0)
-            this.code.addi(r.T1, r.SP, -4 * (3 + index)) // ! REVISAR
+            this.code.addi(r.T1, r.SP, -4 * (3 + index))
             this.code.sw(r.T0, r.T1)
         });
 
-        // Calcular la dirección del nuevo FP en T1
         this.code.addi(r.T1, r.SP, -4)
-
-        // Guardar direccion de retorno
-        this.code.la(r.T0, etiquetaRetornoLlamada)
+        this.code.la(r.T0, RetornoLlamadaLabel)
         this.code.push(r.T0)
 
-        // Guardar el FP
         this.code.push(r.FP)
         this.code.addi(r.FP, r.T1, 0)
+        this.code.addi(r.SP, r.SP, -(node.argumentos.length * 4))
 
-        // colocar el SP al final del frame
-        // this.code.addi(r.SP, r.SP, -(this.functionMetada[nombreFuncion].frameSize - 4))
-        this.code.addi(r.SP, r.SP, -(node.argumentos.length * 4)) // ! REVISAR
+        this.code.j(NombreFuncion)
+        this.code.addLabel(RetornoLlamadaLabel)
 
-
-        // Saltar a la función
-        this.code.j(nombreFuncion)
-        this.code.addLabel(etiquetaRetornoLlamada)
-
-        // Recuperar el valor de retorno
-        const frameSize = this.functionMetada[nombreFuncion].frameSize
-        const returnSize = frameSize - 1;
-        this.code.addi(r.T0, r.FP, -returnSize * 4)
+        const TamanoContexto = this.FuncionForanea[NombreFuncion].TamanoContexto
+        const RetornoTamano = TamanoContexto - 1;
+        this.code.addi(r.T0, r.FP, -RetornoTamano * 4)
         this.code.lw(r.A0, r.T0)
 
-        // Regresar el FP al contexto de ejecución anterior
         this.code.addi(r.T0, r.FP, -4)
         this.code.lw(r.FP, r.T0)
-
-        // Regresar mi SP al contexto de ejecución anterior
-        this.code.addi(r.SP, r.SP, (frameSize - 1) * 4)
-
+        this.code.addi(r.SP, r.SP, (TamanoContexto - 1) * 4)
 
         this.code.push(r.A0)
-        this.code.pushObject({ type: this.functionMetada[nombreFuncion].returnType, length: 4 })
-
-        this.code.comment(`Fin de llamada a funcion ${nombreFuncion}`);
+        this.code.pushObject({ type: this.FuncionForanea[NombreFuncion].returnType, length: 4 })
+        this.code.comment(`Fin-LLamada-Funcion-${node.callee.id}`);
     }
 
     /**
@@ -546,7 +521,7 @@ export class Compilador extends BaseVisitor {
     visitParseInt(node) {
         node.Argumento.accept(this);
         this.code.popObject(r.A0);
-        this.code.callBuiltin('parseInt');
+        this.code.LlamarConstructor('parseInt');
         this.code.push(r.A0); 
         this.code.pushObject({ type: 'int', length: 4 });
     }
@@ -557,7 +532,7 @@ export class Compilador extends BaseVisitor {
     visitParseFloat(node) {
         node.Argumento.accept(this);
         this.code.popObject(r.A0);
-        this.code.callBuiltin('parseFloat');
+        this.code.LlamarConstructor('parseFloat');
         this.code.pushFloat(f.FT0)
         this.code.pushObject({ type: 'float', length: 4 });
     }
@@ -570,7 +545,7 @@ export class Compilador extends BaseVisitor {
         const esFlotante = this.code.getTopObject().type === 'float';
         const valor = this.code.popObject(esFlotante ? f.FA0 : r.A0);
         if (valor.type === 'float') {
-            this.code.callBuiltin('floatToString');
+            this.code.LlamarConstructor('floatToString');
         } else {
             if (valor.type === 'int') {
                 this.code.li(r.A1, 1);
@@ -581,7 +556,7 @@ export class Compilador extends BaseVisitor {
             } else if (valor.type === 'string') {
                 this.code.li(r.A1, 4);
             }
-            this.code.callBuiltin('toString');
+            this.code.LlamarConstructor('toString');
         }
         this.code.pushObject({ type: 'string', length: 4})
     }
@@ -591,7 +566,7 @@ export class Compilador extends BaseVisitor {
      */ 
     visitToLowerCase(node) {
         node.Argumento.accept(this);
-        this.code.callBuiltin('toLowerCase');
+        this.code.LlamarConstructor('toLowerCase');
     }
 
     /**
@@ -599,7 +574,7 @@ export class Compilador extends BaseVisitor {
      */ 
     visitToUpperCase(node) {
         node.Argumento.accept(this);
-        this.code.callBuiltin('toUpperCase');
+        this.code.LlamarConstructor('toUpperCase');
     }
 
     /**
@@ -657,9 +632,7 @@ export class Compilador extends BaseVisitor {
         const TamanioArreglo = node.numero.accept(this);
 
         this.code.NuevoArreglo(NombreArreglo, TipoArreglo, TamanioArreglo);
-
         this.code.la(r.T5, NombreArreglo);
-
         let ValorPorDefecto;
 
         switch (TipoArreglo) {
@@ -912,37 +885,36 @@ export class Compilador extends BaseVisitor {
      * @type {BaseVisitor['visitFuncionForanea']}
      */
     visitFuncionForanea(node) {
-        const baseSize = 2; // | ra | fp |
+        this.code.comment(`Inicio-Funcion-Foranea-${node.id}`);
+        const BaseTamano = 2;
+        const ParametroTamano = node.parametros.length;
 
-        const paramSize = node.parametros.length; // | ra | fp | p1 | p2 | ... | pn |
+        const ContextoEjecucionVisitor = new ContextoEjecucion(BaseTamano + ParametroTamano);
+        node.bloque.accept(ContextoEjecucionVisitor);
+        const ContextoLocal = ContextoEjecucionVisitor.ContextoVisitor;
+        const ContextoLocalTamano = ContextoLocal.length; 
+        const RetornoTamano = 1;
 
-        const frameVisitor = new ContextoEjecucion(baseSize + paramSize);
-        node.bloque.accept(frameVisitor);
-        const localFrame = frameVisitor.frame;
-        const localSize = localFrame.length; // | ra | fp | p1 | p2 | ... | pn | l1 | l2 | ... | ln |
-
-        const returnSize = 1; // | ra | fp | p1 | p2 | ... | pn | l1 | l2 | ... | ln | rv |
-
-        const totalSize = baseSize + paramSize + localSize + returnSize;
-        this.functionMetada[node.id] = {
-            frameSize: totalSize,
+        const TotalTamano = BaseTamano + ParametroTamano + ContextoLocalTamano + RetornoTamano;
+        this.FuncionForanea[node.id] = {
+            TamanoContexto: TotalTamano,
             returnType: node.tipo,
         }
 
-        const instruccionesDeMain = this.code.instrucciones;
-        const instruccionesDeDeclaracionDeFuncion = []
-        this.code.instrucciones = instruccionesDeDeclaracionDeFuncion;
+        const InstruccionesPrincipales = this.code.instrucciones;
+        const InstruccionesFunciones = []
+        this.code.instrucciones = InstruccionesFunciones;
 
         node.parametros.forEach((param, index) => {
             this.code.pushObject({
                 id: param.id,
                 type: param.tipo,
                 length: 4,
-                offset: baseSize + index
+                offset: BaseTamano + index
             })
         });
 
-        localFrame.forEach(variableLocal => {
+        ContextoLocal.forEach(variableLocal => {
             this.code.pushObject({
                 ...variableLocal,
                 length: 4,
@@ -950,33 +922,25 @@ export class Compilador extends BaseVisitor {
             })
         });
 
-        this.insideFunction = node.id;
-        this.frameDclIndex = 0;
-        this.returnLabel = this.code.getLabel();
+        this.ExisteFuncion = node.id;
+        this.ContextoDeclaracionIndex = 0;
+        this.ReturnLabel = this.code.getLabel();
 
-        this.code.comment(`Declaracion de funcion ${node.id}`);
         this.code.addLabel(node.id);
-
         node.bloque.accept(this);
-
-        this.code.addLabel(this.returnLabel);
-
+        this.code.addLabel(this.ReturnLabel);
         this.code.add(r.T0, r.ZERO, r.FP);
         this.code.lw(r.RA, r.T0);
         this.code.jalr(r.ZERO, r.RA, 0);
-        this.code.comment(`Fin de declaracion de funcion ${node.id}`);
 
-        // Limpiar metadatos
-        for (let i = 0; i < paramSize + localSize; i++) {
-            this.code.objectStack.pop(); // ! aqui no retrocedemos el SP, hay que hacerlo más adelanto
+        for (let i = 0; i < ParametroTamano + ContextoLocalTamano; i++) {
+            this.code.objectStack.pop();
         }
-
-        this.code.instrucciones = instruccionesDeMain
-
-        instruccionesDeDeclaracionDeFuncion.forEach(instruccion => {
+        this.code.instrucciones = InstruccionesPrincipales
+        InstruccionesFunciones.forEach(instruccion => {
             this.code.instrucciones_funciones.push(instruccion);
         });
-
-        this.insideFunction = false;
+        this.ExisteFuncion = false;
+        this.code.comment(`Fin-Funcion-Foranea-${node.id}`);
     }
 } 
