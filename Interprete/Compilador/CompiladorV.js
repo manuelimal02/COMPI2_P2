@@ -478,41 +478,40 @@ export class Compilador extends BaseVisitor {
      */
     visitLlamada(node) {
         if (!(node.callee instanceof ReferenciaVariable)) return
-    
-        this.code.comment(`Inicio-LLamada-Funcion-${node.callee.id}`);
         const NombreFuncion = node.callee.id;
-        const RetornoLlamadaLabel = this.code.getLabel();
-
-        node.argumentos.forEach((arg, index) => {
+        this.code.comment(`Inicio-De-Llamada-Funcion-${NombreFuncion}`);
+        const LlamadaRetornoLabel = this.code.getLabel();
+        //GUARDAR LOS ARGUMENTOS
+        this.code.addi(r.SP, r.SP, -4 * 2)
+        node.argumentos.forEach((arg) => {
             arg.accept(this)
-            this.code.popObject(r.T0)
-            this.code.addi(r.T1, r.SP, -4 * (3 + index))
-            this.code.sw(r.T0, r.T1)
         });
-
+        this.code.addi(r.SP, r.SP, 4 * (node.argumentos.length + 2))
+        // CARLCULAR LA NUEVA DIRECCION DEL FP
         this.code.addi(r.T1, r.SP, -4)
-        this.code.la(r.T0, RetornoLlamadaLabel)
+        // GUARDAR DIRECCION DE RETORNO
+        this.code.la(r.T0, LlamadaRetornoLabel)
         this.code.push(r.T0)
-
+        // GUARDAR EL FP
         this.code.push(r.FP)
         this.code.addi(r.FP, r.T1, 0)
-        this.code.addi(r.SP, r.SP, -(node.argumentos.length * 4))
-
-        this.code.j(NombreFuncion)
-        this.code.addLabel(RetornoLlamadaLabel)
-
         const TamanoContexto = this.FuncionForanea[NombreFuncion].TamanoContexto
-        const RetornoTamano = TamanoContexto - 1;
-        this.code.addi(r.T0, r.FP, -RetornoTamano * 4)
+        this.code.addi(r.SP, r.SP, -(TamanoContexto - 2) * 4)
+        // SALTAR A LA FUNCION
+        this.code.j(NombreFuncion)
+        this.code.addLabel(LlamadaRetornoLabel)
+        // RECUPERAR EL VALOR DE RETORNO
+        const returnSize = TamanoContexto - 1;
+        this.code.addi(r.T0, r.FP, -returnSize * 4)
         this.code.lw(r.A0, r.T0)
-
+        // REGRESAR EL FP AL CONTEXTO ANTERIOR
         this.code.addi(r.T0, r.FP, -4)
         this.code.lw(r.FP, r.T0)
-        this.code.addi(r.SP, r.SP, (TamanoContexto - 1) * 4)
-
+        // REGRESAR EL SP AL CONTEXTO ANTERIOR
+        this.code.addi(r.SP, r.SP, TamanoContexto * 4)
         this.code.push(r.A0)
         this.code.pushObject({ type: this.FuncionForanea[NombreFuncion].returnType, length: 4 })
-        this.code.comment(`Fin-LLamada-Funcion-${node.callee.id}`);
+        this.code.comment(`Fin-De-Llamada-Funcion-${NombreFuncion}`);
     }
 
     /**
